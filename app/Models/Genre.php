@@ -1,6 +1,6 @@
 <?php
 
-namespace App\models;
+namespace App\Models;
 
 use App\Models\Traits\Uuid;
 use Illuminate\Database\Eloquent\Model;
@@ -13,4 +13,5 @@ class Genre extends Model
     protected $fillable = ['name', 'is_active'];
     protected $dates = ['deleted_at'];
     protected $casts = ['id' => 'string'];
+    public $incrementing =false;
 }
