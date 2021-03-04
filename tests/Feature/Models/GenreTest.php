@@ -4,13 +4,13 @@ namespace Tests\Feature\Models;
 
 use App\Models\Genre;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\WithFaker;
+use Ramsey\Uuid\Uuid;
 use Tests\TestCase;
 
 class GenreTest extends TestCase
 {
     use DatabaseMigrations;
+
 
     public function testList()
     {
@@ -42,5 +42,19 @@ class GenreTest extends TestCase
             $this->assertEquals($value, $genre->{$key});
         }
 
+    }
+
+    public function testUUID()
+    {
+        $genre = factory(Genre::class)->create(['name' => 'test_name']);
+        self::assertTrue(Uuid::isValid($genre->id));
+    }
+
+    public function testDelete()
+    {
+        $genre = factory(Genre::class)->create(['name' => 'test_name']);
+        $genre->delete();
+        $genres = Genre::all();
+        $this->assertEmpty($genres);
     }
 }
