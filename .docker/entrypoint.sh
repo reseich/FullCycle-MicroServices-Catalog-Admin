@@ -6,7 +6,6 @@ cp .env.testing.example .env.testing
 
 chown -R www-data:www-data .
 composer install
-composer update
 php artisan key:generate
 php artisan migrate
 
