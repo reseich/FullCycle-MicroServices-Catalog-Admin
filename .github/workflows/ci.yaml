@@ -8,7 +8,7 @@ jobs:
       - name: Build the stack
         run: docker-compose up -d
       - name: Test
-        run: docker-compose exec app ./vendor/bin/phpunit
+        run: docker exec -i micro-videos-app ./vendor/bin/phpunit
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@master
         env:
