@@ -8,15 +8,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Test ps
-        run: sudo chown -R $USER:$USER .
 
+      - name: change folder permission
+        run: mkdir bootstrap/cache/
+      - name: change folder permission
+        run: sudo chmod -R 777 .
+      - name: change folder permission
+        run: sudo chmod -R 777 bootstrap/cache/
       - name: Build the stack
         run: docker-compose up --build -d
-
-      - name: Test ps
+      - name: Test compose install
         run: docker exec micro-videos-app composer install
-      - name: Test
+      - name: execute tests
         run: docker exec micro-videos-app ./vendor/bin/phpunit
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@master
