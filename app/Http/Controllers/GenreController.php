@@ -21,7 +21,6 @@ class GenreController extends BasicCrudController
     protected function rulesStore()
     {
         return $this->rules;
-
     }
 
     protected function rulesUpdate()
