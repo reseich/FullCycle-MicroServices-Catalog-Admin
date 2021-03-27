@@ -3,13 +3,13 @@
 namespace Tests\Stubs\Controllers;
 
 use App\Http\Controllers\BasicCrudController;
-use Tests\Stubs\Models\CategoryStub;
+use Tests\Stubs\Models\UploadFilesStub;
 
 class CategoryControllerStub extends BasicCrudController
 {
     protected function model(): string
     {
-        return CategoryStub::class;
+        return UploadFilesStub::class;
     }
 
     protected function rulesStore()

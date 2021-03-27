@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
-use Tests\Stubs\Models\CategoryStub;
+use Tests\Stubs\Models\UploadFilesStub;
 use Tests\Stubs\Controllers\CategoryControllerStub;
 use Tests\TestCase;
 
@@ -20,19 +20,19 @@ class BasicCrudControllerTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        CategoryStub::createTable();
+        UploadFilesStub::createTable();
         $this->controller = new CategoryControllerStub();
     }
 
     protected function tearDown(): void
     {
-        CategoryStub::dropTable();
+        UploadFilesStub::dropTable();
         parent::tearDown();
     }
 
     public function testIndex()
     {
-        $category = CategoryStub::create(['name' => 'test_name', 'description' => 'test_description']);
+        $category = UploadFilesStub::create(['name' => 'test_name', 'description' => 'test_description']);
         $result = $this->controller->index()->toArray();
         self::assertEquals([$category->toArray()], $result);
     }
@@ -50,17 +50,17 @@ class BasicCrudControllerTest extends TestCase
         $request = \Mockery::mock(Request::class);
         $request->shouldReceive('all')->once()->andReturn(['name' => 'test_name', 'description' => 'test_description']);
         $result = $this->controller->store($request);
-        self::assertEquals(CategoryStub::find(1)->toArray(), $result->toArray());
+        self::assertEquals(UploadFilesStub::find(1)->toArray(), $result->toArray());
     }
 
     public function testIfFindOrFailFetchModel()
     {
-        $category = CategoryStub::create(['name' => 'test_name', 'description' => 'test_description']);
+        $category = UploadFilesStub::create(['name' => 'test_name', 'description' => 'test_description']);
         $reflectionClass = new \ReflectionClass(BasicCrudController::class);
         $reflectionMethod = $reflectionClass->getMethod('findOrFail');
         $reflectionMethod->setAccessible(true);
         $result = $reflectionMethod->invokeArgs($this->controller, [$category->id]);
-        $this->assertInstanceOf(CategoryStub::class, $result);
+        $this->assertInstanceOf(UploadFilesStub::class, $result);
     }
 
     public function testIfFindOrFailThrowExceptionWhenIdInvalid()
@@ -74,26 +74,26 @@ class BasicCrudControllerTest extends TestCase
 
     public function testUpdate()
     {
-        $category = CategoryStub::create(['name' => 'test_name', 'description' => 'test_description']);
+        $category = UploadFilesStub::create(['name' => 'test_name', 'description' => 'test_description']);
         $request = \Mockery::mock(Request::class);
         $request->shouldReceive('all')->once()->andReturn(['name' => 'test_tetetete', 'description' => 'test_description']);
         $result = $this->controller->update($request, $category->id);
-        self::assertEquals($result->toArray(), CategoryStub::find(1)->toArray());
+        self::assertEquals($result->toArray(), UploadFilesStub::find(1)->toArray());
     }
 
     public function testShow()
     {
-        $category = CategoryStub::create(['name' => 'test_name', 'description' => 'test_description']);
+        $category = UploadFilesStub::create(['name' => 'test_name', 'description' => 'test_description']);
         $result = $this->controller->show($category->id);
-        self::assertEquals($result->toArray(), CategoryStub::find(1)->toArray());
+        self::assertEquals($result->toArray(), UploadFilesStub::find(1)->toArray());
     }
 
     public function testDestroy()
     {
-        $category = CategoryStub::create(['name' => 'test_name', 'description' => 'test_description']);
+        $category = UploadFilesStub::create(['name' => 'test_name', 'description' => 'test_description']);
         $result = $this->controller->destroy($category->id);
         $this->createTestResponse($result)->assertStatus(204);
-        self::assertCount(0, CategoryStub::all());
+        self::assertCount(0, UploadFilesStub::all());
     }
 
 

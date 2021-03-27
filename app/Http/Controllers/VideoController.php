@@ -31,6 +31,7 @@ class VideoController extends BasicCrudController
             'duration' => 'required|integer',
             'categories_id' => 'required|array|exists:categories,id,deleted_at,NULL',
             'genres_id' => ['required', 'array', 'exists:genres,id,deleted_at,NULL'],
+            'video_file' => 'required',
 
         ];
     }
@@ -46,38 +47,19 @@ class VideoController extends BasicCrudController
     {
         $this->addRuleIfGenreHasCategory($request);
         $validateData = $this->validate($request, $this->rulesStore());
-        $self = $this;
-        $result = DB::transaction(function () use ($request, $validateData, $self) {
-            $model = $this->model()::create($validateData);
-            $self->handleRelations($model, $request);
-            return $model;
-        });
-
+        $result = $this->model()::create($validateData);
         $result->refresh();
         return $result;
-    }
-
-    protected function handleRelations($model, $request)
-    {
-        $model->categories()->sync($request->get('categories_id'));
-        $model->genres()->sync($request->get('genres_id'));
     }
 
     public function update(Request $request, $id)
     {
+        $model = $this->findOrFail($id);
         $this->addRuleIfGenreHasCategory($request);
         $validateData = $this->validate($request, $this->rulesUpdate());
-        $self = $this;
-        $result = DB::transaction(function () use ($request, $validateData, $id, $self) {
-            $model = $this->findOrFail($id);
-            $model->update($validateData);
-            $self->handleRelations($model, $request);
-            return $model;
-        });
-        $result->refresh();
-        return $result;
+        $model->update($validateData);
+        return $model;
     }
-
 
     protected function rulesStore()
     {
