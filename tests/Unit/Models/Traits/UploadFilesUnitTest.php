@@ -39,6 +39,10 @@ class UploadFilesUnitTest extends TestCase
         \Storage::assertExists("1/{$file2->hashName()}");
     }
 
+    public function testRelativeFilePath(){
+        $this->assertEquals("1/video.mp4", $this->obj->relativeFilePath('video.mp4'));
+    }
+
     public function testDeleteOldFiles()
     {
         \Storage::fake();

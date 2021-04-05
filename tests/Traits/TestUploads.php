@@ -4,10 +4,19 @@
 namespace Tests\Traits;
 
 
+use App\Models\Traits\UploadFiles;
 use Illuminate\Http\UploadedFile;
 
 trait TestUploads
 {
+
+    protected function assertFilesExistsInStorage($model, array $files){
+        /** @var UploadFiles $model */
+        foreach ($files as $file) {
+            \Storage::assertExists($model->relativeFilePath($file->hashName()));
+        }
+    }
+
     protected function assertInvalidationFile($field, $extension, $maxSize, $rule, $ruleParams = [])
     {
         $routes = [

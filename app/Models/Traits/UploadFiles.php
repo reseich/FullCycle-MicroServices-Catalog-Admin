@@ -7,12 +7,23 @@ namespace App\Models\Traits;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Storage;
 
 trait UploadFiles
 {
     public $oldFiles = [];
 
     protected abstract function uploadDir();
+
+    public function relativeFilePath($value)
+    {
+        return "{$this->uploadDir()}/{$value}";
+    }
+
+    protected function getFileUrl($filename)
+    {
+        return Storage::url($this->relativeFilePath($filename));
+    }
 
     public static function bootUploadFiles()
     {
