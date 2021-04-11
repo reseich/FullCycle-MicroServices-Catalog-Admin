@@ -17,4 +17,3 @@ yarn-error.log
 .history/
 .devcontainer/
 /bootstrap/cache/
-.npm-cache

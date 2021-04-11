@@ -1,4 +1,4 @@
-FROM php:7.3.6-fpm-alpine3.9
+FROM php:7.3.6-fpm-alpine3.10
 
 RUN apk add --no-cache shadow openssl bash mysql-client nodejs npm git sudo freetype-dev libjpeg-turbo-dev libpng-dev
 RUN docker-php-ext-install pdo pdo_mysql
@@ -20,6 +20,6 @@ WORKDIR /var/www
 
 RUN rm -rf /var/www/html && ln -s public html
 
-USER www-data
+USER root
 
 EXPOSE 9000
