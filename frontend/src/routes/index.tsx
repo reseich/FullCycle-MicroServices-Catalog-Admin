@@ -40,7 +40,7 @@ const routes: MyRouteProps[] = [
         exact: true
     },
     {
-        name: 'members.list',
+        name: 'members.create',
         label: 'List Members',
         path: '/members/create',
         component: membersList,
@@ -54,7 +54,7 @@ const routes: MyRouteProps[] = [
         exact: true
     },
     {
-        name: 'genres.list',
+        name: 'genres.create',
         label: 'List Genres',
         path: '/genres/create',
         component: genreList,
