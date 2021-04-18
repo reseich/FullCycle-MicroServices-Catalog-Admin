@@ -13,7 +13,7 @@ const PageList = () => {
                     title={'Add Cast Member'}
                     size={'small'}
                     component={Link}
-                    to={'member/create'}
+                    to={'members/create'}
                 ><AddIcon/>
                 </Fab>
             </Box>

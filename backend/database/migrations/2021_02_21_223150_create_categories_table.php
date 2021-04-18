@@ -17,7 +17,7 @@ class CreateCategoriesTable extends Migration
             $table->uuid('id')->primary();
             $table->string('name');
             $table->text('description')->nullable();
-            $table->boolean('is_active')->default(true);
+            $table->boolean('is_active')->default(false);
             $table->softDeletes();
             $table->timestamps();
         });
