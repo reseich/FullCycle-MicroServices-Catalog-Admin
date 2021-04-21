@@ -5,6 +5,7 @@ import {httpVideo} from "../../Utils/http";
 import {Chip} from '@material-ui/core';
 import format from 'date-fns/format'
 import parseIso from 'date-fns/parseISO'
+import {BadgeNo, BadgeYes} from "../../Components/Badge/Badge";
 
 const columnsDefinitions: MUIDataTableColumn[] = [
     {
@@ -29,7 +30,7 @@ const columnsDefinitions: MUIDataTableColumn[] = [
         label: 'Active?',
         options: {
             customBodyRender(value, tableMeta, updateValue) {
-                return value ? <Chip label={'Yes'} color={"primary"}/> : <Chip label={'No'} color={"secondary"}/>
+                return value ? <BadgeYes/> : <BadgeNo/>
             }
         }
     },
