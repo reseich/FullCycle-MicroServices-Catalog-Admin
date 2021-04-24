@@ -1,11 +1,11 @@
 // @flow
 import * as React from 'react';
-import {Box, Button, ButtonProps, Checkbox, FormControlLabel, MenuItem, Select, TextField} from "@material-ui/core";
+import {useEffect, useState} from 'react';
+import {Box, Button, ButtonProps, Checkbox, FormControlLabel, MenuItem, TextField} from "@material-ui/core";
 import {makeStyles, Theme} from "@material-ui/core/styles";
 import {Controller, useForm} from "react-hook-form";
 import genreHttp from "../../Utils/http/genreHttp";
 import categoryHttp from "../../Utils/http/categoryHttp";
-import {useEffect, useState} from "react";
 
 const useStyles = makeStyles((theme: Theme) => ({
     submit: {

@@ -19,7 +19,7 @@ class HttpResource {
     }
 
     update<T = any>(id: any, data: any): Promise<AxiosResponse<T>> {
-        return this.http.get<T>(`${this.resource}/${id}`, data)
+        return this.http.put<T>(`${this.resource}/${id}`, data)
     }
 
     delete<T = any>(id: any): Promise<AxiosResponse<T>> {

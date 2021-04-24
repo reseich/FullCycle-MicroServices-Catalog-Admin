@@ -1,16 +1,23 @@
 import * as React from 'react';
 import {useEffect, useState} from 'react';
 import MUIDataTable, {MUIDataTableColumn} from "mui-datatables";
-import {Chip} from '@material-ui/core';
 import format from 'date-fns/format'
 import parseIso from 'date-fns/parseISO'
 import categoryHttp from "../../Utils/http/categoryHttp";
-import {BadgeNo, BadgeYes} from "../../Components/Badge/Badge";
+import {BadgeNo, BadgeYes} from "../../Components/Badge";
 
 const columnsDefinitions: MUIDataTableColumn[] = [
     {
+        name: 'id',
+        label: 'Id'
+    },
+    {
         name: 'name',
         label: 'Name'
+    },
+    {
+        name: 'description',
+        label: 'Description'
     },
     {
         name: 'is_active',

@@ -1,7 +1,7 @@
 // @flow
 import {Chip, createMuiTheme, MuiThemeProvider} from '@material-ui/core';
 import * as React from 'react';
-import theme from "../../theme";
+import theme from "../theme";
 
 const badgeTheme = createMuiTheme({
     palette: {

@@ -2,10 +2,9 @@ import * as React from 'react';
 import {useEffect, useState} from 'react';
 import MUIDataTable, {MUIDataTableColumn} from "mui-datatables";
 import {httpVideo} from "../../Utils/http";
-import {Chip} from '@material-ui/core';
 import format from 'date-fns/format'
 import parseIso from 'date-fns/parseISO'
-import {BadgeNo, BadgeYes} from "../../Components/Badge/Badge";
+import {BadgeNo, BadgeYes} from "../../Components/Badge";
 
 const columnsDefinitions: MUIDataTableColumn[] = [
     {

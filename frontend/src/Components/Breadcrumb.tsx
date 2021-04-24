@@ -6,7 +6,7 @@ import Breadcrumbs from '@material-ui/core/Breadcrumbs';
 import {Route} from 'react-router';
 import {Link as RouterLink} from 'react-router-dom';
 import {Location} from 'history'
-import routes from "../../routes";
+import routes from "../routes";
 import RouteParser from 'route-parser'
 import {Box, Container} from "@material-ui/core";
 
@@ -18,12 +18,12 @@ const useStyles = makeStyles((theme: Theme) =>
     createStyles({
         root: {},
         linkRouter: {
-            color: '#4db5ab',
+            color: theme.palette.secondary.main,
             '&:focus, &:active': {
-                color: '#4db5ab',
+                color: theme.palette.secondary.main,
             },
             '&:hover': {
-                color: '#055a52',
+                color: theme.palette.secondary.dark,
             }
         }
     }),
