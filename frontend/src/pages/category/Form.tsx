@@ -59,7 +59,7 @@ export const Form = () => {
             return
         }
         setLoading(true)
-        categoryHttp.get('asdasd').then(({data}) => {
+        categoryHttp.get(id).then(({data}) => {
             setLoading(false)
             reset(data.data)
         }).catch((error) => {

@@ -8,6 +8,10 @@ import parseIso from 'date-fns/parseISO'
 const types = ['Director', 'Actor']
 const columnsDefinitions: MUIDataTableColumn[] = [
     {
+        name: 'id',
+        label: 'Id'
+    },
+    {
         name: 'name',
         label: 'Name'
     },

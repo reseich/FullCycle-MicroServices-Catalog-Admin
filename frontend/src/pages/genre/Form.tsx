@@ -6,6 +6,10 @@ import {makeStyles, Theme} from "@material-ui/core/styles";
 import {Controller, useForm} from "react-hook-form";
 import genreHttp from "../../Utils/http/genreHttp";
 import categoryHttp from "../../Utils/http/categoryHttp";
+import {useHistory, useParams} from "react-router";
+import {useSnackbar} from "notistack";
+import {yupResolver} from "@hookform/resolvers/yup";
+import * as yup from "yup";
 
 const useStyles = makeStyles((theme: Theme) => ({
     submit: {
@@ -14,67 +18,141 @@ const useStyles = makeStyles((theme: Theme) => ({
 }))
 
 export const Form = () => {
+    const {id} = useParams() as any
     const classes = useStyles()
+    const {enqueueSnackbar} = useSnackbar();
+    const [loading, setLoading] = useState(false)
+    const [selectedCategory, setSelectedCategory] = useState([])
+    const [categories, setCategories] = useState([])
+    const history = useHistory();
     const buttonProps: ButtonProps = {
+        disabled: loading,
         variant: 'contained',
         color: 'secondary',
         className: classes.submit
     }
-    const {register, handleSubmit, getValues, control} = useForm()
-    const [categories, setCategories] = useState([])
-    const [selectedCategories, setSelectedCategories] = React.useState<any[]>([]);
+
+    interface UseFormInputs {
+        name: string,
+        categories_id: string[],
+        is_active: boolean
+    }
+
+    const validationSchema = yup.object().shape({
+        name: yup
+            .string()
+            .label('Name')
+            .required()
+            .max(25)
+            .label('Name'),
+        categories_id: yup.array().required()
+    })
+
+    const {
+        handleSubmit,
+        getValues,
+        control,
+        reset,
+        watch,
+        setValue,
+        formState: {errors}
+    } = useForm<UseFormInputs>({
+        defaultValues: {name: '', is_active: true, categories_id: []},
+        resolver: yupResolver(validationSchema)
+    })
+
+
+    useEffect(() => {
+        categoryHttp.list().then(({data}) => {
+            setCategories(data.data)
+        }).catch(() => {
+            history.push('/genres')
+            enqueueSnackbar('Fail to retrieve list of categories', {variant: 'error'})
+        })
+    }, [enqueueSnackbar, history])
+
+    useEffect(() => {
+        if (!id) {
+            return
+        }
+        setLoading(true)
+        genreHttp.get(id).then(({data}) => {
+            setLoading(false)
+            let selCat = data.data.categories.map((element: any) => element.id)
+            let filterData = {name: data.data.name, is_active: data.data.is_active, categories_id: selCat}
+            setSelectedCategory(selCat)
+            reset(filterData)
+
+        }).catch((err) => {
+            setLoading(false)
+            history.push('/genres')
+            enqueueSnackbar('Genre not found', {variant: 'error'})
+        })
+    }, [enqueueSnackbar, history, id, reset, setValue])
 
     function onSubmit(formData: any, event: any) {
-        console.log(formData)
-        formData.is_active = formData.is_active === undefined ? true : formData.is_active;
-        genreHttp.create(formData).then((response) => {
-            console.log(response.data.data)
+        setLoading(true)
+        const requestHttp = id ? genreHttp.update(id, formData) : genreHttp.create(formData)
+        requestHttp.then(({data}) => {
+            setLoading(false)
+            enqueueSnackbar('Genre save successful', {variant: 'success'})
+            event ? (
+                    id ? history.replace(`/genres/${data.data.id}/edit`) : history.push(`/genres/${data.data.id}/edit`)
+                ) :
+                history.push('/genres')
+        }).catch((error) => {
+            setLoading(false)
+            enqueueSnackbar(error.message, {variant: 'error'})
         })
     }
 
     const handleFieldChange = (event: any) => {
         event.persist();
-        setSelectedCategories(event.target.value)
+        setSelectedCategory(event.target.value)
+        setValue('categories_id', event.target.value)
     };
-
-    useEffect(() => {
-        categoryHttp.list().then(({data}) => {
-            setCategories(data.data)
-        })
-    }, [])
 
     return (
         <form onSubmit={handleSubmit(onSubmit)}>
-            <TextField
-                {...register('name')}
-                name={'name'}
-                label={'Name'}
-                fullWidth
-                variant={'outlined'}
-                margin={'normal'}
-            />
+            <Controller control={control} render={({field: props}) => (
+                <TextField
+                    {...props}
+                    type={'text'}
+                    label={'Name'}
+                    fullWidth
+                    variant={'outlined'}
+                    margin={'normal'}
+                    disabled={loading}
+                    error={!!errors.name}
+                    helperText={errors.name && errors.name.message}
+                    InputLabelProps={{shrink: true}}
+                />
+            )} name={'name'}/>
 
-            <TextField
-                select
-                fullWidth
-                {...register('categories_id')}
-                name="categories_id"
-                variant="outlined"
-                SelectProps={{
-                    multiple: true,
-                    value: selectedCategories,
-                    onChange: handleFieldChange
-                }}
-            >
-                <MenuItem value='first' disabled>
-                    <em>Select Category</em>
-                </MenuItem>
-                {
-                    categories.map((category: any, key) => {
-                        return <MenuItem key={key} value={category.id}>{category.name}</MenuItem>
-                    })
-                }
-            </TextField>
+            <Controller control={control} render={({field: props}) => (
+                <TextField
+                    {...props}
+                    select
+                    fullWidth
+                    variant="outlined"
+                    SelectProps={{
+                        defaultValue: [],
+                        multiple: true,
+                        value: selectedCategory,
+                        onChange: handleFieldChange
+                    }}
+                >
+                    <MenuItem value='first' disabled>
+                        <em>Select Category</em>
+                    </MenuItem>
+                    {
+                        categories.map((category: any, key) => {
+                            return <MenuItem key={key} value={category.id}>{category.name}</MenuItem>
+                        })
+                    }
+                </TextField>
+            )} name={'categories_id'}/>
+
 
             <Controller
                 name="is_active"
@@ -84,9 +162,12 @@ export const Form = () => {
                         control={
                             <Checkbox
                                 {...props}
-                                defaultChecked={true}
-                                onChange={(e) =>
-                                    props.onChange(e.target.checked)}
+                                checked={watch('is_active')}
+                                disabled={loading}
+                                onChange={(e) => {
+                                    setValue('is_active', !getValues()['is_active'])
+                                }
+                                }
                             />
                         }
                         label="Active?"

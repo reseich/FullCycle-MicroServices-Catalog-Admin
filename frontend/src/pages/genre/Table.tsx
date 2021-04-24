@@ -8,8 +8,12 @@ import {BadgeNo, BadgeYes} from "../../Components/Badge";
 
 const columnsDefinitions: MUIDataTableColumn[] = [
     {
+        name: 'id',
+        label: 'Id'
+    },
+    {
         name: 'name',
-        label: 'Name'
+        label: 'Name',
     },
     {
         name: 'categories',

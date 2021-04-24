@@ -57,6 +57,13 @@ const routes: MyRouteProps[] = [
         exact: true
     },
     {
+        name: 'members.edit',
+        label: 'Edit Members',
+        path: '/members/:id/edit',
+        component: membersForm,
+        exact: true
+    },
+    {
         name: 'genres.list',
         label: 'List Genres',
         path: '/genres',
@@ -67,6 +74,13 @@ const routes: MyRouteProps[] = [
         name: 'genres.create',
         label: 'List Genres',
         path: '/genres/create',
+        component: genreForm,
+        exact: true
+    },
+    {
+        name: 'genres.edit',
+        label: 'Edit Genres',
+        path: '/genres/:id/edit',
         component: genreForm,
         exact: true
     },
