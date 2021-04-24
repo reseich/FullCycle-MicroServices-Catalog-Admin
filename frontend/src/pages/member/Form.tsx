@@ -50,7 +50,6 @@ export const Form = () => {
         getValues,
         control,
         reset,
-        watch,
         setValue,
         formState: {errors}
 
