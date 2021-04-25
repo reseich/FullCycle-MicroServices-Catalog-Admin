@@ -1,34 +1,21 @@
 // @flow
 import * as React from 'react';
 import {useEffect, useState} from 'react';
-import {Box, Button, ButtonProps, FormControlLabel, Radio, RadioGroup, TextField} from "@material-ui/core";
-import {makeStyles, Theme} from "@material-ui/core/styles";
+import {FormControlLabel, Radio, RadioGroup, TextField} from "@material-ui/core";
 import {Controller, useForm} from "react-hook-form";
 import memberHttp from "../../Utils/http/memberHttp";
 import {useHistory, useParams} from "react-router";
 import {useSnackbar} from "notistack";
 import * as yup from "yup";
 import {yupResolver} from "@hookform/resolvers/yup";
-
-const useStyles = makeStyles((theme: Theme) => ({
-    submit: {
-        margin: theme.spacing(1)
-    }
-}))
+import {SubmitActions} from "../../Components/SubmitActions";
 
 export const Form = () => {
     const {id} = useParams() as any
-    const classes = useStyles()
     const {enqueueSnackbar} = useSnackbar();
     const [loading, setLoading] = useState(false)
     const [type, setType] = useState("1")
     const history = useHistory();
-    const buttonProps: ButtonProps = {
-        disabled: loading,
-        variant: 'contained',
-        color: 'secondary',
-        className: classes.submit
-    }
 
     interface UseFormInputs {
         name: string,
@@ -49,6 +36,7 @@ export const Form = () => {
         handleSubmit,
         getValues,
         control,
+        trigger,
         reset,
         setValue,
         formState: {errors}
@@ -141,18 +129,12 @@ export const Form = () => {
                 )}
             />
 
-            <Box dir={'rtl'}>
-                <Button
-                    {...buttonProps}
-                    onClick={() => {
-                        onSubmit(getValues(), null)
-                    }}
-                >Save</Button>
-                <Button
-                    type={"submit"}
-                    {...buttonProps}
-                >Save and continue editing</Button>
-            </Box>
+            <SubmitActions disabledButtons={loading} handleSave={async () => {
+                await trigger();
+                if (!errors.name) {
+                    onSubmit(getValues(), null)
+                }
+            }}/>
         </form>
     );
 };

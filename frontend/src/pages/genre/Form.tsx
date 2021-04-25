@@ -1,8 +1,7 @@
 // @flow
 import * as React from 'react';
 import {useEffect, useState} from 'react';
-import {Box, Button, ButtonProps, Checkbox, FormControlLabel, MenuItem, TextField} from "@material-ui/core";
-import {makeStyles, Theme} from "@material-ui/core/styles";
+import {Checkbox, FormControlLabel, MenuItem, TextField} from "@material-ui/core";
 import {Controller, useForm} from "react-hook-form";
 import genreHttp from "../../Utils/http/genreHttp";
 import categoryHttp from "../../Utils/http/categoryHttp";
@@ -10,27 +9,16 @@ import {useHistory, useParams} from "react-router";
 import {useSnackbar} from "notistack";
 import {yupResolver} from "@hookform/resolvers/yup";
 import * as yup from "yup";
-
-const useStyles = makeStyles((theme: Theme) => ({
-    submit: {
-        margin: theme.spacing(1)
-    }
-}))
+import {Category, ListResponse} from "../../Utils/models";
+import {SubmitActions} from "../../Components/SubmitActions";
 
 export const Form = () => {
     const {id} = useParams() as any
-    const classes = useStyles()
     const {enqueueSnackbar} = useSnackbar();
     const [loading, setLoading] = useState(false)
     const [selectedCategory, setSelectedCategory] = useState([])
-    const [categories, setCategories] = useState([])
+    const [categories, setCategories] = useState<Category[]>([])
     const history = useHistory();
-    const buttonProps: ButtonProps = {
-        disabled: loading,
-        variant: 'contained',
-        color: 'secondary',
-        className: classes.submit
-    }
 
     interface UseFormInputs {
         name: string,
@@ -53,6 +41,7 @@ export const Form = () => {
         getValues,
         control,
         reset,
+        trigger,
         watch,
         setValue,
         formState: {errors}
@@ -63,7 +52,7 @@ export const Form = () => {
 
 
     useEffect(() => {
-        categoryHttp.list().then(({data}) => {
+        categoryHttp.list<ListResponse<Category>>().then(({data}) => {
             setCategories(data.data)
         }).catch(() => {
             history.push('/genres')
@@ -134,6 +123,7 @@ export const Form = () => {
                     {...props}
                     select
                     fullWidth
+                    label={'Categories'}
                     variant="outlined"
                     SelectProps={{
                         defaultValue: [],
@@ -175,18 +165,12 @@ export const Form = () => {
                 )}
             />
 
-            <Box dir={'rtl'}>
-                <Button
-                    {...buttonProps}
-                    onClick={() => {
-                        onSubmit(getValues(), null)
-                    }}
-                >Save</Button>
-                <Button
-                    type={"submit"}
-                    {...buttonProps}
-                >Save and continue editing</Button>
-            </Box>
+            <SubmitActions disabledButtons={loading} handleSave={async () => {
+                await trigger();
+                if (!errors.name && !errors.categories_id) {
+                    onSubmit(getValues(), null)
+                }
+            }}/>
         </form>
     );
 };

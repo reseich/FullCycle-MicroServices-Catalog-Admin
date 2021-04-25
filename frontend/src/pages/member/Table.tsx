@@ -1,9 +1,10 @@
 import * as React from 'react';
 import {useEffect, useState} from 'react';
 import MUIDataTable, {MUIDataTableColumn} from "mui-datatables";
-import {httpVideo} from "../../Utils/http";
 import format from 'date-fns/format'
 import parseIso from 'date-fns/parseISO'
+import {CastMember, ListResponse} from "../../Utils/models";
+import memberHttp from "../../Utils/http/memberHttp";
 
 const types = ['Director', 'Actor']
 const columnsDefinitions: MUIDataTableColumn[] = [
@@ -36,10 +37,12 @@ const columnsDefinitions: MUIDataTableColumn[] = [
 ]
 
 const Table = () => {
-    const [data, setData] = useState([])
+    const [data, setData] = useState<CastMember[]>([])
 
     useEffect(() => {
-        httpVideo.get('cast_members').then((response) => setData(response.data.data))
+        memberHttp.list<ListResponse<CastMember>>().then(({data}) => {
+            setData(data.data)
+        })
     }, [])
     return (
         <div>

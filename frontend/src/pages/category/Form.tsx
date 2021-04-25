@@ -1,20 +1,16 @@
 // @flow
 import * as React from 'react';
 import {useEffect, useState} from 'react';
-import {Box, Button, ButtonProps, Checkbox, FormControlLabel, TextField} from "@material-ui/core";
-import {makeStyles, Theme} from "@material-ui/core/styles";
+import {Checkbox, FormControlLabel, TextField} from "@material-ui/core";
 import {Controller, useForm} from "react-hook-form";
 import categoryHttp from "../../Utils/http/categoryHttp";
 import * as yup from 'yup';
 import {yupResolver} from '@hookform/resolvers/yup'
 import {useHistory, useParams} from "react-router";
 import {useSnackbar} from "notistack";
+import {SubmitActions} from "../../Components/SubmitActions";
+import {DefaultForm} from "../../Components/DefaultForm";
 
-const useStyles = makeStyles((theme: Theme) => ({
-    submit: {
-        margin: theme.spacing(1)
-    }
-}))
 
 const validationSchema = yup.object().shape({
     name: yup
@@ -27,16 +23,9 @@ const validationSchema = yup.object().shape({
 
 export const Form = () => {
     const {id} = useParams() as any
-    const classes = useStyles()
     const {enqueueSnackbar} = useSnackbar();
     const [loading, setLoading] = useState(false)
     const history = useHistory();
-    const buttonProps: ButtonProps = {
-        variant: 'contained',
-        color: 'secondary',
-        disabled: loading,
-        className: classes.submit
-    }
 
     interface UseFormInputs {
         name: string,
@@ -51,6 +40,7 @@ export const Form = () => {
         reset,
         watch,
         setValue,
+        trigger,
         formState: {errors}
     } = useForm<UseFormInputs>({defaultValues: {name: '', is_active: true}, resolver: yupResolver(validationSchema)})
 
@@ -62,7 +52,7 @@ export const Form = () => {
         categoryHttp.get(id).then(({data}) => {
             setLoading(false)
             reset(data.data)
-        }).catch((error) => {
+        }).catch(() => {
             setLoading(false)
             history.push('/categories')
             enqueueSnackbar('Category not found', {variant: 'error'})
@@ -81,12 +71,12 @@ export const Form = () => {
                 history.push('/categories')
         }).catch((error) => {
             setLoading(false)
-            enqueueSnackbar(error.message, {variant:'success'})
+            enqueueSnackbar(error.message, {variant: 'success'})
         })
     }
 
     return (
-        <form onSubmit={handleSubmit(onSubmit)}>
+        <DefaultForm GridItemProps={{xs: 12, md: 6}} onSubmit={handleSubmit(onSubmit)}>
             <Controller control={control} render={({field: props}) => (
                 <TextField
                     {...props}
@@ -136,19 +126,12 @@ export const Form = () => {
                     />
                 )}
             />
-
-            <Box dir={'rtl'}>
-                <Button
-                    {...buttonProps}
-                    onClick={() => {
-                        onSubmit(getValues(), null)
-                    }}
-                >Save</Button>
-                <Button
-                    type={"submit"}
-                    {...buttonProps}
-                >Save and continue editing</Button>
-            </Box>
-        </form>
+            <SubmitActions disabledButtons={loading} handleSave={async () => {
+                await trigger();
+                if (!errors.name) {
+                    onSubmit(getValues(), null)
+                }
+            }}/>
+        </DefaultForm>
     );
 };

@@ -5,6 +5,7 @@ import format from 'date-fns/format'
 import parseIso from 'date-fns/parseISO'
 import categoryHttp from "../../Utils/http/categoryHttp";
 import {BadgeNo, BadgeYes} from "../../Components/Badge";
+import {Category, ListResponse} from "../../Utils/models";
 
 const columnsDefinitions: MUIDataTableColumn[] = [
     {
@@ -40,10 +41,10 @@ const columnsDefinitions: MUIDataTableColumn[] = [
 ]
 
 const Table = () => {
-    const [data, setData] = useState([])
+    const [data, setData] = useState<Category[]>([])
 
     useEffect(() => {
-        categoryHttp.list().then(({data}) => {
+        categoryHttp.list<ListResponse<Category>>().then(({data}) => {
             setData(data.data)
         })
     }, [])
