@@ -3,6 +3,7 @@
 namespace App\ModelFilters;
 
 use EloquentFilter\ModelFilter;
+use Illuminate\Support\Str;
 
 abstract class DefaultModelFilter extends ModelFilter
 {
@@ -10,30 +11,28 @@ abstract class DefaultModelFilter extends ModelFilter
 
     public function setup()
     {
-        $this->blacklistMethod('isSortable');
+//         $this->blacklistMethod('isSortable');
         $noSort = $this->input('sort', '') === '';
         if ($noSort) {
             $this->orderBy('created_at', 'DESC');
-        } else {
-
         }
     }
 
     public function sort($column)
     {
-        if (method_exists($this, $method = 'sortBy' . Str::stydly($column))) {
+        if (method_exists($this, $method = 'sortBy' . Str::studly($column))) {
             $this->$method();
         }
 
         if ($this->isSortable($column)) {
-            $dir = strtolower($this->input('dir')) === 'asc' ? 'ASC' : 'DESC';
+            $dir = strtolower($this->input('dir')) == 'asc' ? 'ASC' : 'DESC';
             $this->orderBy($column, $dir);
         }
     }
 
-    protected function isSortable($columm)
+    protected function isSortable($column)
     {
-        return in_array($columm, $this->sortable);
+        return in_array($column, $this->sortable);
     }
 
 }

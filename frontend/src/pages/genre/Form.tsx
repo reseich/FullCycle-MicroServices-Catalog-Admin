@@ -52,7 +52,7 @@ export const Form = () => {
 
 
     useEffect(() => {
-        categoryHttp.list<ListResponse<Category>>().then(({data}) => {
+        categoryHttp.list<ListResponse<Category>>({queryParams: {all: ''}}).then(({data}) => {
             setCategories(data.data)
         }).catch(() => {
             history.push('/genres')
