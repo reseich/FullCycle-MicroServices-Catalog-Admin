@@ -4,15 +4,30 @@ import MUIDataTable, {MUIDataTableColumn, MUIDataTableOptions, MUIDataTableProps
 import {cloneDeep, merge, omit} from 'lodash'
 import {MuiThemeProvider, useTheme} from "@material-ui/core";
 import {Theme} from "@material-ui/core/styles";
+import DebouncedTableSearch from "./DebouncedTableSearch";
 
-const defaultOptions: MUIDataTableOptions = {
+const defaultOptions = (debounceSearchTime?:number): MUIDataTableOptions => ({
     print: false,
     download: false,
     responsive: 'standard',
     textLabels: {
         body: {}
+    },
+    customSearchRender: (
+        searchText: any,
+        handleSearch: (text: string) => void,
+        hideSearch: () => void,
+        options: any
+    ) => {
+        return <DebouncedTableSearch
+            searchText={searchText}
+            onSearch={handleSearch}
+            onHide={hideSearch}
+            options={options}
+            debounceTime={debounceSearchTime}
+        />
     }
-}
+})
 
 export interface TableColumn extends MUIDataTableColumn {
     width?: string
@@ -20,7 +35,8 @@ export interface TableColumn extends MUIDataTableColumn {
 
 interface TableProps extends MUIDataTableProps {
     columns: TableColumn[],
-    loading?: boolean
+    loading?: boolean,
+    debouncedTimeSearch?: number
 }
 
 const Table: React.FC<TableProps> = (props) => {
@@ -50,7 +66,7 @@ const Table: React.FC<TableProps> = (props) => {
     }
 
     const theme = cloneDeep<Theme>(useTheme());
-    const newProps = merge({options: cloneDeep(defaultOptions)}, props, {columns: extractMuiDataTableColumns(props.columns)})
+    const newProps = merge({options: cloneDeep(defaultOptions(props.debouncedTimeSearch))}, props, {columns: extractMuiDataTableColumns(props.columns)})
     applyLoading()
     const originalProps = handleOriginalMuiDataTableProps()
 

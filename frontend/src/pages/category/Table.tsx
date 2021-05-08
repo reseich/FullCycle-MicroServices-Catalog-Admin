@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {useEffect, useState} from 'react';
+import {useEffect, useReducer, useState} from 'react';
 import format from 'date-fns/format'
 import parseIso from 'date-fns/parseISO'
 import categoryHttp from "../../Utils/http/categoryHttp";
@@ -11,20 +11,8 @@ import {MuiThemeProvider} from "@material-ui/core/styles";
 import {IconButton} from "@material-ui/core";
 import EditIcon from "@material-ui/icons/Edit";
 import {Link} from "react-router-dom";
-import {MUISortOptions} from "mui-datatables";
 import {FilterResetButton} from "../../Components/Table/FilterResetButton";
-
-interface SearchState {
-    search: string,
-    pagination: Pagination,
-    order: MUISortOptions
-}
-
-interface Pagination {
-    page: number,
-    total: number,
-    per_page: number
-}
+import reducer, {INITIAL_STATE, Creators} from "../../store/search";
 
 const columnsDefinitions: TableColumn[] = [
     {
@@ -82,23 +70,18 @@ const columnsDefinitions: TableColumn[] = [
 ]
 
 const Table = () => {
-    const initialState: SearchState = {
-        search: null,
-        pagination: {page: 1, total: 0, per_page: 10},
-        order: {direction: 'desc', name: ''}
-    }
-
     const {enqueueSnackbar} = useSnackbar();
     const [data, setData] = useState<Category[]>([])
     const [loading, setLoading] = useState<boolean>(false)
-    const [searchState, setSearchState] = useState<SearchState>(initialState)
+    const [searchState, dispatch] = useReducer(reducer, INITIAL_STATE)
+    const [totalRecords, setTotalRecords] = useState<number>(0)
 
     useEffect(() => {
         setLoading(true)
         categoryHttp.list<ListResponse<Category>>(
             {
                 queryParams: {
-                    search: searchState.search,
+                    search: cleanSearchText(searchState.search),
                     page: searchState.pagination.page,
                     per_page: searchState.pagination.per_page,
                     sort: searchState.order.name,
@@ -106,10 +89,9 @@ const Table = () => {
                 }
             }
         ).then(({data}) => {
-            setSearchState(prevState => ({...prevState, pagination: {...prevState.pagination, total: data.meta.total}}))
+            setTotalRecords(data.meta.total)
             setLoading(false)
             setData(data.data)
-
         }).catch((error) => {
             if (categoryHttp.isCancelRequest(error)) {
                 return
@@ -124,9 +106,18 @@ const Table = () => {
         searchState.order,
         enqueueSnackbar])
 
+    function cleanSearchText(text: any) {
+        let newText = text
+        if (text && text.value !== undefined) {
+            newText = text.value
+        }
+        return newText
+    }
+
     return (
         <MuiThemeProvider theme={makeActionStyles(columnsDefinitions.length - 1)}>
             <DefaultTable
+                debouncedTimeSearch={500}
                 loading={loading}
                 columns={columnsDefinitions}
                 data={data}
@@ -134,23 +125,20 @@ const Table = () => {
                 options={{
                     sortOrder: searchState.order,
                     serverSide: true,
-                    searchText: searchState.search,
+                    searchText: searchState.search as string,
                     page: searchState.pagination.page - 1,
                     rowsPerPage: searchState.pagination.per_page,
-                    count: searchState.pagination.total,
-                    customToolbar: () => (<FilterResetButton handleClick={() => (setSearchState(initialState))}/>),
-                    onSearchChange: (value) => setSearchState((prevState => ({
-                        ...prevState, search: value || '', pagination: {...prevState.pagination, page: 1}
-                    }))),
-                    onChangePage: (value) => setSearchState((prevState => ({
-                        ...prevState, pagination: {...prevState.pagination, page: value + 1}
-                    }))),
-                    onChangeRowsPerPage: (value) => setSearchState((prevState => ({
-                        ...prevState, pagination: {...prevState.pagination, per_page: value}
-                    }))),
-                    onColumnSortChange: (changedColumn, direction) => setSearchState((prevState => ({
-                        ...prevState, order: {name: changedColumn, direction: direction}
-                    }))),
+                    count: totalRecords,
+                    customToolbar: () => (<FilterResetButton handleClick={() => dispatch(Creators.setReset())}/>),
+                    onSearchChange: (value) => dispatch(Creators.setSearch({search: value || ''})),
+                    onChangePage: (page) => dispatch(Creators.setPage({page: page + 1})),
+                    onChangeRowsPerPage: (per_page) => dispatch(Creators.setPerPage({per_page: per_page})),
+                    onColumnSortChange: (changedColumn, direction) => dispatch(Creators.setOrder({
+                        order: {
+                            name: changedColumn,
+                            direction: direction
+                        }
+                    })),
                 }}>
             </DefaultTable>
         </MuiThemeProvider>
