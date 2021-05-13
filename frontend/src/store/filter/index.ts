@@ -22,7 +22,8 @@ export const {Types, Creators} = createActions<{
 })
 
 export const INITIAL_STATE: Typings.State = {
-    search: null,
+    search: '',
+    reset: false,
     pagination: {page: 1, per_page: 10},
     order: {direction: 'desc', name: ''}
 }
@@ -37,31 +38,31 @@ const reducer = createReducer(INITIAL_STATE, {
 
 function setSearch(state = INITIAL_STATE, action: Typings.SetSearchAction): Typings.State {
     return {
-        ...state, search: action.payload.search, pagination: {...state.pagination, page: 1}
+        ...state, search: action.payload.search, pagination: {...state.pagination, page: 1}, reset: false
     }
 }
 
 function setPage(state = INITIAL_STATE, action: Typings.SetPageAction): Typings.State {
     return {
-        ...state, pagination: {...state.pagination, page: action.payload.page}
+        ...state, pagination: {...state.pagination, page: action.payload.page}, reset: false
     }
 }
 
 function setPerPage(state = INITIAL_STATE, action: Typings.SetPerPageAction): Typings.State {
     return {
-        ...state, pagination: {...state.pagination, per_page: action.payload.per_page}
+        ...state, pagination: {...state.pagination, per_page: action.payload.per_page}, reset: false
     }
 }
 
 function setOrder(state = INITIAL_STATE, action: Typings.SetOrderAction): Typings.State {
     return {
-        ...state, order: {name: action.payload.order.name, direction: action.payload.order.direction}
+        ...state, order: {name: action.payload.order.name, direction: action.payload.order.direction}, reset: false
     }
 }
 
 function setReset(): Typings.State {
     return {
-        ...INITIAL_STATE, search: {value: null, updated: null}
+        ...INITIAL_STATE, search: '', reset: true
     }
 }
 

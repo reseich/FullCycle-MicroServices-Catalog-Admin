@@ -2,7 +2,8 @@ import {MUISortOptions} from "mui-datatables";
 import {AnyAction} from "redux";
 
 export interface State {
-    search: string | { value: string | null, [key: string]: any } | null
+    search: string
+    reset: boolean
     pagination: Pagination,
     order: MUISortOptions
 }
@@ -14,7 +15,7 @@ export interface Pagination {
 
 export interface SetSearchAction extends AnyAction {
     payload: {
-        search: string | { value: string | null, [key: string]: any } | null
+        search: string
     }
 }
 
@@ -35,3 +36,5 @@ export interface SetOrderAction extends AnyAction {
         order: MUISortOptions
     }
 }
+
+export type Actions = SetSearchAction | SetPageAction | SetPerPageAction | SetOrderAction

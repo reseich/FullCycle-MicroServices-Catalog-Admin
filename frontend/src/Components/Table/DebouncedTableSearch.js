@@ -29,11 +29,18 @@ const useStyles = makeStyles(
     }),
     {name: 'MUIDataTableSearch'},
 );
-
-const DebouncedTableSearch = ({options, searchText, onSearch, onHide, debounceTime}) => {
+const DebouncedTableSearch = ({options, searchText, onSearch, onHide, debounceTime, reset}) => {
     const classes = useStyles();
     const [text, setText] = useState(searchText);
     let value = text;
+
+    useEffect(() => {
+        if (reset) {
+            onHide()
+            setText('')
+            onSearch('')
+        }
+    }, [setText, reset, onSearch, onHide]);
 
     let dispatchOnSearch = (myValue) => {
         onSearch(myValue);
@@ -42,8 +49,8 @@ const DebouncedTableSearch = ({options, searchText, onSearch, onHide, debounceTi
 
     dispatchOnSearch = useCallback(debounce(dispatchOnSearch, debounceTime), []) // eslint-disable-line react-hooks/exhaustive-deps
 
-    if (searchText && searchText.value !== undefined) {
-        value = searchText.value
+    if (reset) {
+        value = searchText
     }
     const handleTextChange = event => {
         let newValue = event.target.value;
