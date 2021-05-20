@@ -12,29 +12,37 @@ import {IconButton} from "@material-ui/core";
 import EditIcon from "@material-ui/icons/Edit";
 import {Link} from "react-router-dom";
 import {FilterResetButton} from "../../Components/Table/FilterResetButton";
-import {Creators} from "../../store/filter";
 import useFilter from "../../hooks/useFIlter";
 
 const debounceTimeValue = 300
+const rowsPerPage = 15
+const rowsPerPageOptions = [15, 25, 50]
 const columnsDefinitions: TableColumn[] = [
     {
         name: 'id',
         label: 'Id',
         width: '30%',
         options: {
+            filter: false,
             sort: false
         }
     },
     {
         name: 'name',
         label: 'Name',
-        width: '43%'
+        width: '43%',
+        options: {
+            filter: false
+        }
     },
     {
         name: 'is_active',
         label: 'Active?',
         width: '4%',
         options: {
+            filterOptions: {
+                names: ['Yes', 'No']
+            },
             customBodyRender(value, tableMeta, updateValue) {
                 return value ? <BadgeYes/> : <BadgeNo/>
             }
@@ -45,6 +53,7 @@ const columnsDefinitions: TableColumn[] = [
         label: 'Created at',
         width: '10%',
         options: {
+            filter: false,
             customBodyRender(value, tableMeta, updateValue) {
                 return <span>{format(parseIso(value), 'dd/MM/yyyy')}</span>
             }
@@ -56,6 +65,7 @@ const columnsDefinitions: TableColumn[] = [
         width: '13%',
         options: {
             sort: false,
+            filter: false,
             customBodyRender(value, tableMeta, updateValue): JSX.Element {
                 return (
                     <IconButton
@@ -78,27 +88,27 @@ const Table = () => {
     const {
         filterManager,
         filterState,
-        dispatch,
         totalRecords,
         setTotalRecords,
         debouncedFilterState,
     } = useFilter({
         columns: columnsDefinitions,
         debounceTime: debounceTimeValue,
-        rowsPerPage: 10,
-        rowsPerPageOptions: [10, 25, 50]
+        rowsPerPage,
+        rowsPerPageOptions
     })
+
 
     useEffect(() => {
         setLoading(true)
         categoryHttp.list<ListResponse<Category>>(
             {
                 queryParams: {
-                    search: filterManager.cleanSearchText(filterState.search),
-                    page: filterState.pagination.page,
-                    per_page: filterState.pagination.per_page,
-                    sort: filterState.order.name,
-                    dir: filterState.order.direction
+                    search: filterManager.cleanSearchText(debouncedFilterState.search),
+                    page: debouncedFilterState.pagination.page,
+                    per_page: debouncedFilterState.pagination.per_page,
+                    sort: debouncedFilterState.order.name,
+                    dir: debouncedFilterState.order.direction
                 }
             }
         ).then(({data}) => {
@@ -136,8 +146,9 @@ const Table = () => {
                     searchText: filterState.search,
                     page: filterState.pagination.page - 1,
                     rowsPerPage: filterState.pagination.per_page,
+                    rowsPerPageOptions,
                     count: totalRecords,
-                    customToolbar: () => (<FilterResetButton handleClick={() => dispatch(Creators.setReset())}/>),
+                    customToolbar: () => (<FilterResetButton handleClick={() => filterManager.resetFilter()}/>),
                     onSearchChange: (value) => filterManager.changeSearch(value),
                     onChangePage: (page) => filterManager.changePage(page),
                     onChangeRowsPerPage: (per_page) => filterManager.changeRowsPerPage(per_page),

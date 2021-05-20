@@ -68,7 +68,10 @@ const Table: React.FC<TableProps> = (props) => {
     }
 
     const theme = cloneDeep<Theme>(useTheme());
-    const newProps = merge({options: cloneDeep(defaultOptions(props.reset as boolean, props.debouncedTimeSearch))}, props, {columns: extractMuiDataTableColumns(props.columns)})
+    const newProps = merge({options: cloneDeep(defaultOptions(props.reset as boolean, props.debouncedTimeSearch))},
+        props,
+        {columns: extractMuiDataTableColumns(props.columns)})
+
     applyLoading()
     const originalProps = handleOriginalMuiDataTableProps()
 

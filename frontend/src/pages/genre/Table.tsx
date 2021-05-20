@@ -1,9 +1,9 @@
 import * as React from 'react';
-import {useEffect, useState} from 'react';
+import {useEffect, useRef, useState} from 'react';
 import format from 'date-fns/format'
 import parseIso from 'date-fns/parseISO'
 import {BadgeNo, BadgeYes} from "../../Components/Badge";
-import {Genre, ListResponse} from "../../Utils/models";
+import {Category, Genre, ListResponse} from "../../Utils/models";
 import genreHttp from "../../Utils/http/genreHttp";
 import DefaultTable, {makeActionStyles, TableColumn} from '../../Components/Table'
 import {useSnackbar} from "notistack";
@@ -11,6 +11,10 @@ import {MuiThemeProvider} from "@material-ui/core/styles";
 import {IconButton} from "@material-ui/core";
 import {Link} from "react-router-dom";
 import EditIcon from "@material-ui/icons/Edit";
+import useFilter from "../../hooks/useFIlter";
+import * as yup from "yup";
+import categoryHttp from "../../Utils/http/categoryHttp";
+import {FilterResetButton} from "../../Components/Table/FilterResetButton";
 
 const columnsDefinitions: TableColumn[] = [
     {
@@ -18,18 +22,26 @@ const columnsDefinitions: TableColumn[] = [
         label: 'Id',
         width: '30%',
         options: {
+            filter: false,
             sort: false
         }
     },
     {
         name: 'name',
         label: 'Name',
-        width: '20%'
+        width: '20%',
+        options: {
+            filter: false
+        }
     },
     {
         name: 'categories',
         label: 'categories',
         options: {
+            filterType: 'multiselect',
+            filterOptions: {
+                names: []
+            },
             customBodyRender(value, tableMeta, updateValue) {
                 let result: string[] = []
                 value.forEach((category: any) => {
@@ -44,6 +56,9 @@ const columnsDefinitions: TableColumn[] = [
         label: 'Active?',
         width: '4%',
         options: {
+            filterOptions: {
+                names: ['Yes', 'No']
+            },
             customBodyRender(value, tableMeta, updateValue) {
                 return value ? <BadgeYes/> : <BadgeNo/>
             }
@@ -54,6 +69,7 @@ const columnsDefinitions: TableColumn[] = [
         label: 'Created at',
         width: '10%',
         options: {
+            filter: false,
             customBodyRender(value, tableMeta, updateValue) {
                 return <span>{format(parseIso(value), 'dd/MM/yyyy')}</span>
             }
@@ -64,6 +80,7 @@ const columnsDefinitions: TableColumn[] = [
         label: 'Actions',
         width: '13%',
         options: {
+            filter: false,
             sort: false,
             customBodyRender(value, tableMeta, updateValue): JSX.Element {
                 return (
@@ -80,30 +97,167 @@ const columnsDefinitions: TableColumn[] = [
     },
 ]
 
+const debounceTime = 300;
+const rowsPerPage = 15;
+const rowsPerPageOptions = [15, 25, 50];
 const Table = () => {
     const {enqueueSnackbar} = useSnackbar();
     const [data, setData] = useState<Genre[]>([])
+    const [categories, setCategories] = useState<Category[]>();
     const [loading, setLoading] = useState<boolean>(false)
+    const subscribed = useRef(true);
+
+    const {
+        filterManager,
+        filterState,
+        debouncedFilterState,
+        totalRecords,
+        setTotalRecords,
+    } = useFilter({
+        columns: columnsDefinitions,
+        debounceTime: debounceTime,
+        rowsPerPage,
+        rowsPerPageOptions,
+        extraFilter: {
+            createValidationSchema: () => {
+                return yup.object().shape({
+                    categories: yup.mixed()
+                        .nullable()
+                        .transform(value => {
+                            return !value || value === '' ? undefined : value.split(',');
+                        })
+                        .default(null),
+                })
+            },
+            formatSearchParams: (debouncedState) => {
+                return debouncedState.extraFilter ? {
+                    ...(
+                        debouncedState.extraFilter.categories &&
+                        {categories: debouncedState.extraFilter.categories.join(',')}
+                    )
+                } : undefined
+            },
+            getStateFromURL: (queryParams) => {
+                return {
+                    categories: queryParams.get('categories')
+                }
+            }
+        }
+    });
+
+    const indexColumnCategories = columnsDefinitions.findIndex(c => c.name === 'categories');
+    const columnCategories = columnsDefinitions[indexColumnCategories];
+    const categoriesFilterValue = filterState.extraFilter && filterState.extraFilter.categories;
+    (columnCategories.options as any).filterList = categoriesFilterValue ? categoriesFilterValue : [];
+    const serverSideFilterList = columnsDefinitions.map(column => []);
+    if (categoriesFilterValue) {
+        serverSideFilterList[indexColumnCategories] = categoriesFilterValue;
+    }
 
     useEffect(() => {
-        setLoading(true)
-        genreHttp.list<ListResponse<Genre>>().then(({data}) => {
-            setLoading(false)
-            setData(data.data)
-        }).catch(() => {
-            setLoading(false)
-            enqueueSnackbar('Cannot retrieve information', {variant: 'error'})
-        })
-    }, [enqueueSnackbar])
+        let isSubscribed = true;
+        (async () => {
+            try {
+                const {data} = await categoryHttp.list({queryParams: {all: ''}});
+                if (isSubscribed) {
+                    setCategories(data.data);
+                    (columnCategories.options as any).filterOptions.names = data.data.map((category: Category) => category.name)
+                }
+            } catch (error) {
+                console.error(error);
+                enqueueSnackbar(
+                    'Cannot retrieve information',
+                    {variant: 'error',}
+                )
+            }
+        })();
+
+        return () => {
+            isSubscribed = false;
+        }
+    }, []);
+
+    useEffect(() => {
+        subscribed.current = true;
+        filterManager.pushHistory();
+        getData();
+        return () => {
+            subscribed.current = false;
+        }
+    }, [
+        filterManager.cleanSearchText(debouncedFilterState.search),
+        debouncedFilterState.pagination.page,
+        debouncedFilterState.pagination.per_page,
+        debouncedFilterState.order,
+        JSON.stringify(debouncedFilterState.extraFilter)
+    ]);
+
+    async function getData() {
+        setLoading(true);
+        try {
+            const {data} = await genreHttp.list<ListResponse<Genre>>({
+                queryParams: {
+                    search: filterManager.cleanSearchText(debouncedFilterState.search),
+                    page: debouncedFilterState.pagination.page,
+                    per_page: debouncedFilterState.pagination.per_page,
+                    sort: debouncedFilterState.order.name,
+                    dir: debouncedFilterState.order.direction,
+                    ...(
+                        debouncedFilterState.extraFilter &&
+                        debouncedFilterState.extraFilter.categories &&
+                        {categories: debouncedFilterState.extraFilter.categories.join(',')}
+                    )
+                }
+            });
+            if (subscribed.current) {
+                setData(data.data);
+                setTotalRecords(data.meta.total);
+            }
+        } catch (error) {
+            console.error(error);
+            if (genreHttp.isCancelRequest(error)) {
+                return;
+            }
+            enqueueSnackbar(
+                'Cannot retrieve information',
+                {variant: 'error',}
+            )
+        } finally {
+            setLoading(false);
+        }
+    }
+
 
     return (
         <MuiThemeProvider theme={makeActionStyles(columnsDefinitions.length - 1)}>
             <DefaultTable
-                loading={loading}
+                title=""
                 columns={columnsDefinitions}
                 data={data}
-                title={''}>
-            </DefaultTable>
+                loading={loading}
+                reset={filterState.reset}
+                debouncedTimeSearch={debounceTime}
+                options={{
+                    sortOrder: filterState.order,
+                    serverSide: true,
+                    searchText: filterState.search,
+                    page: filterState.pagination.page - 1,
+                    rowsPerPage: filterState.pagination.per_page,
+                    rowsPerPageOptions,
+                    count: totalRecords,
+                    onFilterChange: (column, filterList, type) => {
+                        const columnIndex = columnsDefinitions.findIndex(c => c.name === column);
+                        filterManager.changeExtraFilter({
+                            [column as any]: filterList[columnIndex].length ? filterList[columnIndex] : null
+                        })
+                    },
+                    customToolbar: () => (<FilterResetButton handleClick={() => filterManager.resetFilter()}/>),
+                    onSearchChange: (value) => filterManager.changeSearch(value),
+                    onChangePage: (page) => filterManager.changePage(page),
+                    onChangeRowsPerPage: (per_page) => filterManager.changeRowsPerPage(per_page),
+                    onColumnSortChange: (changedColumn, direction) => filterManager.changeColumnSort(changedColumn, direction),
+                }}
+            />
         </MuiThemeProvider>
     );
 };

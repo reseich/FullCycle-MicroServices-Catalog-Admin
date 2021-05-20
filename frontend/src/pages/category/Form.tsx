@@ -42,7 +42,10 @@ export const Form = () => {
         setValue,
         trigger,
         formState: {errors}
-    } = useForm<UseFormInputs>({defaultValues: {name: '', is_active: true}, resolver: yupResolver(validationSchema)})
+    } = useForm<UseFormInputs>({
+        defaultValues: {name: '', description: '', is_active: true},
+        resolver: yupResolver(validationSchema)
+    })
 
     useEffect(() => {
         if (!id) {
@@ -98,6 +101,7 @@ export const Form = () => {
                     name={'description'}
                     label={'Description'}
                     variant={'outlined'}
+                    value={props.value || ''}
                     disabled={loading}
                     multiline
                     fullWidth

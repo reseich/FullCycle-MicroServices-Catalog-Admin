@@ -115,8 +115,12 @@ const theme = createMuiTheme({
                 color: (palette.secondary as SimplePaletteColorOptions).main,
             }
         },
+        MUIDataTableFilterList: {
+            root: {
+                marginBottom: '16px'
+            }
+        }
     }
-
 })
 
 export default theme
