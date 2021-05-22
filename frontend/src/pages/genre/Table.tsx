@@ -3,8 +3,8 @@ import {useEffect, useRef, useState} from 'react';
 import format from 'date-fns/format'
 import parseIso from 'date-fns/parseISO'
 import {BadgeNo, BadgeYes} from "../../Components/Badge";
-import {Category, Genre, ListResponse} from "../../Utils/models";
-import genreHttp from "../../Utils/http/genreHttp";
+import {Category, Genre, ListResponse} from "../../util/models";
+import genreHttp from "../../util/http/genreHttp";
 import DefaultTable, {makeActionStyles, TableColumn} from '../../Components/Table'
 import {useSnackbar} from "notistack";
 import {MuiThemeProvider} from "@material-ui/core/styles";
@@ -13,7 +13,7 @@ import {Link} from "react-router-dom";
 import EditIcon from "@material-ui/icons/Edit";
 import useFilter from "../../hooks/useFIlter";
 import * as yup from "yup";
-import categoryHttp from "../../Utils/http/categoryHttp";
+import categoryHttp from "../../util/http/categoryHttp";
 import {FilterResetButton} from "../../Components/Table/FilterResetButton";
 
 const columnsDefinitions: TableColumn[] = [

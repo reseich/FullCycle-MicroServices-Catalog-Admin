@@ -2,8 +2,8 @@ import * as React from 'react';
 import {useEffect, useRef, useState} from 'react';
 import format from 'date-fns/format'
 import parseIso from 'date-fns/parseISO'
-import {CastMember, CastMemberTypeMap, ListResponse} from "../../Utils/models";
-import memberHttp from "../../Utils/http/memberHttp";
+import {CastMember, CastMemberTypeMap, ListResponse} from "../../util/models";
+import memberHttp from "../../util/http/memberHttp";
 import DefaultTable, {makeActionStyles, TableColumn} from '../../Components/Table'
 import {useSnackbar} from "notistack";
 import {MuiThemeProvider} from "@material-ui/core/styles";

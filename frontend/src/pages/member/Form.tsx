@@ -3,7 +3,7 @@ import * as React from 'react';
 import {useEffect, useState} from 'react';
 import {FormControlLabel, Radio, RadioGroup, TextField} from "@material-ui/core";
 import {Controller, useForm} from "react-hook-form";
-import memberHttp from "../../Utils/http/memberHttp";
+import memberHttp from "../../util/http/memberHttp";
 import {useHistory, useParams} from "react-router";
 import {useSnackbar} from "notistack";
 import * as yup from "yup";

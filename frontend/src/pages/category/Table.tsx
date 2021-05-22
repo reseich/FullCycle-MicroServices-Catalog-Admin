@@ -2,9 +2,9 @@ import * as React from 'react';
 import {useEffect, useState} from 'react';
 import format from 'date-fns/format'
 import parseIso from 'date-fns/parseISO'
-import categoryHttp from "../../Utils/http/categoryHttp";
+import categoryHttp from "../../util/http/categoryHttp";
 import {BadgeNo, BadgeYes} from "../../Components/Badge";
-import {Category, ListResponse} from "../../Utils/models";
+import {Category, ListResponse} from "../../util/models";
 import DefaultTable, {makeActionStyles, TableColumn} from '../../Components/Table'
 import {useSnackbar} from "notistack";
 import {MuiThemeProvider} from "@material-ui/core/styles";

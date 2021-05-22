@@ -3,13 +3,13 @@ import * as React from 'react';
 import {useEffect, useState} from 'react';
 import {Checkbox, FormControlLabel, MenuItem, TextField} from "@material-ui/core";
 import {Controller, useForm} from "react-hook-form";
-import genreHttp from "../../Utils/http/genreHttp";
-import categoryHttp from "../../Utils/http/categoryHttp";
+import genreHttp from "../../util/http/genreHttp";
+import categoryHttp from "../../util/http/categoryHttp";
 import {useHistory, useParams} from "react-router";
 import {useSnackbar} from "notistack";
 import {yupResolver} from "@hookform/resolvers/yup";
 import * as yup from "yup";
-import {Category, ListResponse} from "../../Utils/models";
+import {Category, ListResponse} from "../../util/models";
 import {SubmitActions} from "../../Components/SubmitActions";
 
 export const Form = () => {

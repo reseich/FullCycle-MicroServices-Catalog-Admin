@@ -3,7 +3,7 @@ import * as React from 'react';
 import {useEffect, useState} from 'react';
 import {Checkbox, FormControlLabel, TextField} from "@material-ui/core";
 import {Controller, useForm} from "react-hook-form";
-import categoryHttp from "../../Utils/http/categoryHttp";
+import categoryHttp from "../../util/http/categoryHttp";
 import * as yup from 'yup';
 import {yupResolver} from '@hookform/resolvers/yup'
 import {useHistory, useParams} from "react-router";

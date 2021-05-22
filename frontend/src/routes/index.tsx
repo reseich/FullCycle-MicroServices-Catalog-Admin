@@ -3,8 +3,10 @@ import {RouteProps} from 'react-router-dom';
 import categoryList from "../pages/category/PageList";
 import genreList from "../pages/genre/PageList";
 import membersList from "../pages/member/PageList";
+import videoList from "../pages/video/PageList";
 import categoryForm from "../pages/category/PageForm";
 import genreForm from "../pages/genre/PageForm";
+import videoForm from "../pages/video/PageForm";
 import membersForm from "../pages/member/PageForm";
 import Dashboard from '../pages/Dashboard';
 
@@ -82,6 +84,27 @@ const routes: MyRouteProps[] = [
         label: 'Edit Genres',
         path: '/genres/:id/edit',
         component: genreForm,
+        exact: true
+    },
+    {
+        name: 'videos.list',
+        label: 'List Videos',
+        path: '/videos',
+        component: videoList,
+        exact: true
+    },
+    {
+        name: 'videos.create',
+        label: 'List Videos',
+        path: '/videos/create',
+        component: videoForm,
+        exact: true
+    },
+    {
+        name: 'videos.edit',
+        label: 'Edit Videos',
+        path: '/videos/:id/edit',
+        component: videoForm,
         exact: true
     },
 ]
