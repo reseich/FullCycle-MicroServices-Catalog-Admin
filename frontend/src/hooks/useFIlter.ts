@@ -67,6 +67,7 @@ export class FilterManager {
         this.rowsPerPage = rowsPerPage
         this.rowsPerPageOptions = rowsPerPageOptions
         this.history = history
+        this.extraFilter = extraFilter
         this.createValidationSchema()
     }
 

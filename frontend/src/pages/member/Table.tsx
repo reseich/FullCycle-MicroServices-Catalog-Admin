@@ -30,7 +30,9 @@ const columnsDefinitions: TableColumn[] = [
         name: 'name',
         label: 'Name',
         width: '40%',
-
+        options: {
+            filter: false,
+        }
     },
     {
         name: 'type',
