@@ -126,6 +126,7 @@ export const Index = () => {
         })
     }
 
+
     return (
         <DefaultForm
             GridItemProps={{xs: 12}}
@@ -200,9 +201,14 @@ export const Index = () => {
 
                 </Grid>
                 <Grid item xs={12} md={6}>
-                    <RatingField value={watch('rating')} setValue={(value) => {
-                        setValue('rating', value)
-                    }} error={errors.rating}/>
+                    <RatingField
+                        value={watch('rating')}
+                        setValue={(value) => {
+                            setValue('rating', value)
+                        }}
+                        error={errors.rating}
+                        FormControlProps={{margin: isGreaterMd ? 'none': 'normal'}}
+                        disabled={loading}/>
                     <Controller
                         name="opened"
                         control={control}
