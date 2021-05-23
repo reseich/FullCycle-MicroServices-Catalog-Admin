@@ -1,12 +1,16 @@
 import * as React from 'react';
 import {useEffect, useState} from 'react';
 import {
+    Card,
+    CardContent,
     Checkbox,
     FormControlLabel,
+    FormHelperText,
     Grid,
     makeStyles,
     TextField,
-    Theme, Typography,
+    Theme,
+    Typography,
     useMediaQuery,
     useTheme
 } from "@material-ui/core";
@@ -14,13 +18,15 @@ import {Controller, useForm} from "react-hook-form";
 import * as yup from 'yup';
 import {useHistory, useParams} from "react-router";
 import {useSnackbar} from "notistack";
-import {Video, VideoFileFieldsMap} from "../../../util/models";
+import {Video} from "../../../util/models";
 import {DefaultForm} from "../../../Components/DefaultForm";
 import {yupResolver} from "@hookform/resolvers/yup";
 import videoHttp from "../../../util/http/videosHttp";
 import {SubmitActions} from "../../../Components/SubmitActions";
-import Rating from "../../../Components/Rating";
 import RatingField from "./RatingField";
+import UploadField from "./UploadField";
+import GenreField from "./GenreField";
+import CategoryField from "./CategoryField";
 
 
 const useStyles = makeStyles((theme: Theme) => ({
@@ -58,7 +64,6 @@ const validationSchema = yup.object().shape({
         .required()
 });
 
-const fileFields = Object.keys(VideoFileFieldsMap);
 
 export const Index = () => {
     const {
@@ -75,6 +80,10 @@ export const Index = () => {
             title: '',
             description: '',
             rating: '',
+            thumb_file: '',
+            banner_file: '',
+            trailer_file: '',
+            video_file: '',
             year_launched: 0,
             duration: 0,
             opened: false,
@@ -99,6 +108,7 @@ export const Index = () => {
         if (!id) {
             return
         }
+
         setLoading(true)
         videoHttp.get(id).then(({data}) => {
             setLoading(false)
@@ -198,6 +208,37 @@ export const Index = () => {
                             )} name={'duration'}/>
                         </Grid>
                     </Grid>
+                    Cast Members
+                    <br/>
+                    <Grid container spacing={2}>
+                        <Grid item xs={12} md={6}>
+                            <GenreField
+                                genres={watch('genres')}
+                                setGenres={(value) => setValue('genres', value)}
+                                categories={watch('categories')}
+                                setCategories={(value) => setValue('categories', value)}
+                                error={errors.genres}
+                                disabled={loading}
+                            />
+                        </Grid>
+                        <Grid item xs={12} md={6}>
+                            <CategoryField
+                                categories={watch('categories')}
+                                setCategories={(value) => setValue('categories', value)}
+                                genres={watch('genres')}
+                                error={errors.categories}
+                                disabled={loading}
+                            />
+                        </Grid>
+                        <Grid item xs={12}>
+                            <FormHelperText>
+                                Choose video genre
+                            </FormHelperText>
+                            <FormHelperText>
+                                Choose at least one category of each genre
+                            </FormHelperText>
+                        </Grid>
+                    </Grid>
 
                 </Grid>
                 <Grid item xs={12} md={6}>
@@ -207,8 +248,48 @@ export const Index = () => {
                             setValue('rating', value)
                         }}
                         error={errors.rating}
-                        FormControlProps={{margin: isGreaterMd ? 'none': 'normal'}}
+                        FormControlProps={{margin: isGreaterMd ? 'none' : 'normal'}}
                         disabled={loading}/>
+                    <br/>
+                    <Card className={classes.cardUpload}>
+                        <CardContent>
+                            <Typography color="primary" variant="h6">
+                                Images
+                            </Typography>
+                            <UploadField
+                                accept={'image/*'}
+                                label={'Thumb'}
+                                setValue={(value) => setValue('thumb_file', value)}
+                            />
+                            <UploadField
+                                accept={'image/*'}
+                                label={'Banner'}
+                                setValue={(value) => setValue('banner_file', value)}
+                            />
+                        </CardContent>
+                    </Card>
+                    <Card className={classes.cardUpload}>
+                        <CardContent>
+                            <Typography color="primary" variant="h6">
+                                Videos
+                            </Typography>
+                            <UploadField
+                                accept={'video/mp4'}
+                                label={'Trailer'}
+                                setValue={(value) => setValue('trailer_file', value)}
+                            />
+                            <UploadField
+                                accept={'video/mp4'}
+                                label={'Principal'}
+                                setValue={(value) => {
+                                    setValue('video_file', value)
+                                    console.log(getValues());
+                                }}
+                            />
+                        </CardContent>
+                    </Card>
+                    <br/>
+
                     <Controller
                         name="opened"
                         control={control}
