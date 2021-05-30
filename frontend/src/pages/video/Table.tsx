@@ -11,6 +11,8 @@ import {Link} from "react-router-dom";
 import EditIcon from '@material-ui/icons/Edit';
 import {FilterResetButton} from "../../Components/Table/FilterResetButton";
 import useFilter from "../../hooks/useFIlter";
+import useDeleteCollection from "../../hooks/useDeleteCollection";
+import DeleteDialog from "../../Components/DeleteDialog";
 
 const columnsDefinition: TableColumn[] = [
     {
@@ -96,6 +98,7 @@ const Table = () => {
     const subscribed = useRef(true);
     const [data, setData] = useState<Video[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
+    const {openDeleteDialog, setOpenDeleteDialog, rowsToDelete, setRowsToDelete} = useDeleteCollection();
 //property, funcao - changePage changeRowsPerPage
     const {
         filterManager,
@@ -125,6 +128,41 @@ const Table = () => {
         debouncedFilterState.order
     ]);
 
+    function deleteRows(confirmed: boolean) {
+        if (!confirmed) {
+            setOpenDeleteDialog(false);
+            return;
+        }
+        const ids = rowsToDelete
+            .data
+            .map(value => data[value.index].id)
+            .join(',');
+        videoHttp
+            .deleteCollection({ids})
+            .then((response: any) => {
+                snackbar.enqueueSnackbar(
+                    'Registries removed',
+                    {variant: 'success'}
+                );
+                if (
+                    rowsToDelete.data.length === filterState.pagination.per_page
+                    && filterState.pagination.page > 1
+                ) {
+                    const page = filterState.pagination.page - 2;
+                    filterManager.changePage(page);
+                } else {
+                    getData();
+                }
+            })
+            .catch((error: any) => {
+                console.error(error);
+                snackbar.enqueueSnackbar(
+                    'Cannot remove registries',
+                    {variant: 'error',}
+                )
+            })
+    }
+
     async function getData() {
         setLoading(true);
         try {
@@ -140,6 +178,9 @@ const Table = () => {
             if (subscribed.current) {
                 setData(data.data);
                 setTotalRecords(data.meta.total);
+                if (openDeleteDialog) {
+                    setOpenDeleteDialog(false);
+                }
             }
         } catch (error) {
             console.error(error);
@@ -158,6 +199,7 @@ const Table = () => {
 
     return (
         <MuiThemeProvider theme={makeActionStyles(columnsDefinition.length - 1)}>
+            <DeleteDialog open={openDeleteDialog} handleClose={deleteRows}/>
             <DefaultTable
                 title=""
                 columns={columnsDefinition}
@@ -181,7 +223,11 @@ const Table = () => {
                     onChangePage: (page) => filterManager.changePage(page),
                     onChangeRowsPerPage: (perPage) => filterManager.changeRowsPerPage(perPage),
                     onColumnSortChange: (changedColumn: string, direction: 'asc' | 'desc') =>
-                        filterManager.changeColumnSort(changedColumn, direction)
+                        filterManager.changeColumnSort(changedColumn, direction),
+                    onRowsDelete: (rowsDeleted, newTableData) => {
+                        setRowsToDelete(rowsDeleted as any)
+                        return false
+                    },
                 }}
             />
         </MuiThemeProvider>

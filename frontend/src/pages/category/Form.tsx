@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react';
-import {useEffect, useState} from 'react';
+import {useContext, useEffect, useState} from 'react';
 import {Checkbox, FormControlLabel, TextField} from "@material-ui/core";
 import {Controller, useForm} from "react-hook-form";
 import categoryHttp from "../../util/http/categoryHttp";
@@ -10,6 +10,7 @@ import {useHistory, useParams} from "react-router";
 import {useSnackbar} from "notistack";
 import {SubmitActions} from "../../Components/SubmitActions";
 import {DefaultForm} from "../../Components/DefaultForm";
+import LoadingContext from "../../Components/loading/LoadingContext";
 
 
 const validationSchema = yup.object().shape({
@@ -24,7 +25,7 @@ const validationSchema = yup.object().shape({
 export const Form = () => {
     const {id} = useParams() as any
     const {enqueueSnackbar} = useSnackbar();
-    const [loading, setLoading] = useState(false)
+    const loading = useContext(LoadingContext);
     const history = useHistory();
 
     interface UseFormInputs {
@@ -51,29 +52,23 @@ export const Form = () => {
         if (!id) {
             return
         }
-        setLoading(true)
         categoryHttp.get(id).then(({data}) => {
-            setLoading(false)
             reset(data.data)
         }).catch(() => {
-            setLoading(false)
             history.push('/categories')
             enqueueSnackbar('Category not found', {variant: 'error'})
         })
     }, [id, reset, enqueueSnackbar, history])
 
     function onSubmit(formData: any, event: any) {
-        setLoading(true)
         const requestHttp = id ? categoryHttp.update(id, formData) : categoryHttp.create(formData)
         requestHttp.then(({data}) => {
-            setLoading(false)
             enqueueSnackbar('Category save successful', {variant: 'success'})
             event ? (
                     id ? history.replace(`/categories/${data.data.id}/edit`) : history.push(`/categories/${data.data.id}/edit`)
                 ) :
                 history.push('/categories')
         }).catch((error) => {
-            setLoading(false)
             enqueueSnackbar(error.message, {variant: 'success'})
         })
     }

@@ -48,7 +48,7 @@ class HttpResource {
         if (this.containsFile(data)) {
             sendData = this.getFormData(data);
         }
-        const {http} = options as any;
+        const {http} = (options || {}) as any;
         return !options || !http || !http.usePost
             ? this.http.put<T>(`${this.resource}/${id}`, sendData)
             : this.http.post<T>(`${this.resource}/${id}`, sendData)
@@ -56,6 +56,14 @@ class HttpResource {
 
     delete<T = any>(id: any): Promise<AxiosResponse<T>> {
         return this.http.delete<T>(`${this.resource}/${id}`)
+    }
+
+    deleteCollection<T = any>(queryParams:any): Promise<AxiosResponse<T>> {
+        const config:AxiosRequestConfig = {};
+        if (queryParams) {
+            config['params'] = queryParams;
+        }
+        return this.http.delete<T>(`${this.resource}`, config)
     }
 
     isCancelRequest(error: any) {

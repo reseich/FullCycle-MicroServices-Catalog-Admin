@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {createRef, MutableRefObject, useEffect, useRef, useState} from 'react';
+import {createRef, MutableRefObject, useContext, useEffect, useRef, useState} from 'react';
 import {
     Card,
     CardContent,
@@ -14,7 +14,7 @@ import {
     useMediaQuery,
     useTheme
 } from "@material-ui/core";
-import {Controller, useForm} from "react-hook-form";
+import {Controller, useForm, useFormState} from "react-hook-form";
 import * as yup from 'yup';
 import {useHistory, useParams} from "react-router";
 import {useSnackbar} from "notistack";
@@ -30,6 +30,8 @@ import CategoryField, {CategoryFieldComponent} from "./CategoryField";
 import CastMemberField, {CastMemberFieldComponent} from "./CastMemberField";
 import {omit, zipObject} from 'lodash';
 import {InputFileComponent} from "../../../Components/InputFile";
+import useSnackbarFormError from "../../../hooks/useSnackbarFormError";
+import LoadingContext from "../../../Components/loading/LoadingContext";
 
 
 const useStyles = makeStyles((theme: Theme) => ({
@@ -70,10 +72,10 @@ const validationSchema = yup.object().shape({
         .label('Genres')
         .required().test({
             message: 'Each Genre Must be chosen at least by one selected category',
-            test(value:any){ //array genres [{name, categories: []}]
+            test(value: any) { //array genres [{name, categories: []}]
                 return value.every(
-                    (v:any) => v.categories.filter(
-                        (cat:any) => this.parent.categories.map((c:any) => c.id).includes(cat.id)
+                    (v: any) => v.categories.filter(
+                        (cat: any) => this.parent.categories.map((c: any) => c.id).includes(cat.id)
                     ).length !== 0
                 );
             }
@@ -95,8 +97,9 @@ export const Index = () => {
         watch,
         trigger,
         reset,
+        setError,
         setValue,
-        formState: {errors}
+        formState: {errors, submitCount}
     } = useForm({
         defaultValues: {
             title: '',
@@ -122,7 +125,7 @@ export const Index = () => {
     const history = useHistory();
     const classes = useStyles();
     const [video, setVideo] = useState<Video | null>(null);
-    const [loading, setLoading] = useState<boolean>(false);
+    const loading = useContext(LoadingContext);
     const theme = useTheme();
     const isGreaterMd = useMediaQuery(theme.breakpoints.up('md'));
     const castMemberRef = useRef() as MutableRefObject<CastMemberFieldComponent>;
@@ -131,26 +134,22 @@ export const Index = () => {
     const uploadsRef = useRef(
         zipObject(fileFields, fileFields.map(() => createRef()))
     ) as MutableRefObject<{ [key: string]: MutableRefObject<InputFileComponent> }>;
-
-
+    useSnackbarFormError(submitCount, errors)
     useEffect(() => {
         if (!id) {
             return
         }
 
-        setLoading(true)
         videoHttp.get(id).then(({data}) => {
             setVideo(data.data)
-            setLoading(false)
             resetForm(data.data)
         }).catch(() => {
-            setLoading(false)
             history.push('/videos')
             enqueueSnackbar('Video not found', {variant: 'error'})
         })
     }, [id, reset, enqueueSnackbar, history])
 
-    function resetForm(data:any) {
+    function resetForm(data: any) {
         Object.keys(uploadsRef.current).forEach(
             field => uploadsRef.current[field].current.clear()
         );
@@ -162,30 +161,26 @@ export const Index = () => {
 
     function onSubmit(formData: any, event: any) {
         const sendData = omit(formData, ['cast_members', 'genres', 'categories']);
-        sendData['cast_members_id'] = formData['cast_members'].map((cast_member:CastMember) => cast_member.id);
-        sendData['categories_id'] = formData['categories'].map((category:Category) => category.id);
-        sendData['genres_id'] = formData['genres'].map((genre:Genre) => genre.id);
+        sendData['cast_members_id'] = formData['cast_members'].map((cast_member: CastMember) => cast_member.id);
+        sendData['categories_id'] = formData['categories'].map((category: Category) => category.id);
+        sendData['genres_id'] = formData['genres'].map((genre: Genre) => genre.id);
 
-        setLoading(true)
         const http = !video
             ? videoHttp.create(sendData)
             : videoHttp.update(video.id, {...sendData, _method: 'PUT'}, {http: {usePost: true}});
         http.then(({data}) => {
-            setLoading(false)
             enqueueSnackbar('Video save successful', {variant: 'success'})
             event
                 ? (
                     id
                         ? history.replace(`/videos/${data.data.id}/edit`)
                         : history.push(`/videos/${data.data.id}/edit`)
-                ):
+                ) :
                 history.push('/videos')
         }).catch((error) => {
-            setLoading(false)
             enqueueSnackbar(error.message, {variant: 'success'})
         })
     }
-
 
     return (
         <DefaultForm
@@ -378,6 +373,18 @@ export const Index = () => {
             </Grid>
             <SubmitActions disabledButtons={loading} handleSave={async () => {
                 await trigger();
+                if (!getValues().cast_members.length) {
+                    setError('cast_members', {type: 'required',message:'Field Required'})
+                }
+                if (!getValues()?.categories.length) {
+                    setError('categories', {type: 'required',message:'Field Required'})
+                }
+                if (!getValues()?.genres.length) {
+                    setError('genres', {type: 'required',message:'Field Required'})
+                }
+
+                console.error(getValues())
+                console.error(errors)
                 if (!errors.title) {
                     onSubmit(getValues(), null)
                 }

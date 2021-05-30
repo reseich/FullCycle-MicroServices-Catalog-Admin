@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {useEffect, useState} from 'react';
+import {useContext, useEffect, useState} from 'react';
 import format from 'date-fns/format'
 import parseIso from 'date-fns/parseISO'
 import categoryHttp from "../../util/http/categoryHttp";
@@ -13,6 +13,7 @@ import EditIcon from "@material-ui/icons/Edit";
 import {Link} from "react-router-dom";
 import {FilterResetButton} from "../../Components/Table/FilterResetButton";
 import useFilter from "../../hooks/useFIlter";
+import LoadingContext from "../../Components/loading/LoadingContext";
 
 const debounceTimeValue = 300
 const rowsPerPage = 15
@@ -84,7 +85,7 @@ const columnsDefinitions: TableColumn[] = [
 const Table = () => {
     const {enqueueSnackbar} = useSnackbar();
     const [data, setData] = useState<Category[]>([])
-    const [loading, setLoading] = useState<boolean>(false)
+    const loading = useContext(LoadingContext);
     const {
         filterManager,
         filterState,
@@ -100,7 +101,6 @@ const Table = () => {
 
 
     useEffect(() => {
-        setLoading(true)
         categoryHttp.list<ListResponse<Category>>(
             {
                 queryParams: {
@@ -114,13 +114,11 @@ const Table = () => {
         ).then(({data}) => {
             filterManager.pushHistory()
             setTotalRecords(data.meta.total)
-            setLoading(false)
             setData(data.data)
         }).catch((error) => {
             if (categoryHttp.isCancelRequest(error)) {
                 return
             }
-            setLoading(false)
             enqueueSnackbar('Cannot retrieve information', {variant: 'error'})
         })
 
