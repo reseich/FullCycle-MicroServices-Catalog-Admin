@@ -9,6 +9,7 @@ import genreForm from "../pages/genre/PageForm";
 import videoForm from "../pages/video/PageForm";
 import membersForm from "../pages/member/PageForm";
 import Dashboard from '../pages/Dashboard';
+import UploadPage from "../pages/uploads";
 
 export interface MyRouteProps extends RouteProps {
     name: string
@@ -107,6 +108,13 @@ const routes: MyRouteProps[] = [
         component: videoForm,
         exact: true
     },
+    {
+        name: 'uploads',
+        label: 'Uploads',
+        path: '/uploads',
+        component: UploadPage,
+        exact: true
+    }
 ]
 
 export default routes

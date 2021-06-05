@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react';
-import {Page} from "../../Components/Page";
+import {Page} from "../../components/Page";
 import {Form} from "./Form";
 import {useParams} from "react-router";
 

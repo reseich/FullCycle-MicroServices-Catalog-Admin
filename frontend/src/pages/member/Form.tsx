@@ -8,7 +8,7 @@ import {useHistory, useParams} from "react-router";
 import {useSnackbar} from "notistack";
 import * as yup from "yup";
 import {yupResolver} from "@hookform/resolvers/yup";
-import {SubmitActions} from "../../Components/SubmitActions";
+import {SubmitActions} from "../../components/SubmitActions";
 
 export const Form = () => {
     const {id} = useParams() as any

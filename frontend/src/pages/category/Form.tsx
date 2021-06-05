@@ -8,9 +8,9 @@ import * as yup from 'yup';
 import {yupResolver} from '@hookform/resolvers/yup'
 import {useHistory, useParams} from "react-router";
 import {useSnackbar} from "notistack";
-import {SubmitActions} from "../../Components/SubmitActions";
-import {DefaultForm} from "../../Components/DefaultForm";
-import LoadingContext from "../../Components/loading/LoadingContext";
+import {SubmitActions} from "../../components/SubmitActions";
+import {DefaultForm} from "../../components/DefaultForm";
+import LoadingContext from "../../components/loading/LoadingContext";
 
 
 const validationSchema = yup.object().shape({

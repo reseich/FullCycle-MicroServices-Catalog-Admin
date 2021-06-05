@@ -19,20 +19,23 @@ import * as yup from 'yup';
 import {useHistory, useParams} from "react-router";
 import {useSnackbar} from "notistack";
 import {CastMember, Category, Genre, Video, VideoFileFieldsMap} from "../../../util/models";
-import {DefaultForm} from "../../../Components/DefaultForm";
+import {DefaultForm} from "../../../components/DefaultForm";
 import {yupResolver} from "@hookform/resolvers/yup";
 import videoHttp from "../../../util/http/videosHttp";
-import {SubmitActions} from "../../../Components/SubmitActions";
+import {SubmitActions} from "../../../components/SubmitActions";
 import RatingField from "./RatingField";
 import UploadField from "./UploadField";
 import GenreField, {GenreFieldComponent} from "./GenreField";
 import CategoryField, {CategoryFieldComponent} from "./CategoryField";
 import CastMemberField, {CastMemberFieldComponent} from "./CastMemberField";
 import {omit, zipObject} from 'lodash';
-import {InputFileComponent} from "../../../Components/InputFile";
+import {InputFileComponent} from "../../../components/InputFile";
 import useSnackbarFormError from "../../../hooks/useSnackbarFormError";
-import LoadingContext from "../../../Components/loading/LoadingContext";
-
+import LoadingContext from "../../../components/loading/LoadingContext";
+import SnackbarUpload from "../../../components/SnackbarUpload";
+import {useDispatch, useSelector} from "react-redux";
+import {UploadState as UploadState, Upload, UploadModule, FileInfo} from "../../../store/upload/types";
+import {Creators} from '../../../store/upload';
 
 const useStyles = makeStyles((theme: Theme) => ({
     cardUpload: {
@@ -119,6 +122,7 @@ export const Index = () => {
         resolver: yupResolver(validationSchema)
 
     });
+    useSnackbarFormError(submitCount, errors);
     const fileFields = Object.keys(VideoFileFieldsMap);
     const {id} = useParams() as any
     const {enqueueSnackbar} = useSnackbar();
@@ -134,7 +138,8 @@ export const Index = () => {
     const uploadsRef = useRef(
         zipObject(fileFields, fileFields.map(() => createRef()))
     ) as MutableRefObject<{ [key: string]: MutableRefObject<InputFileComponent> }>;
-    useSnackbarFormError(submitCount, errors)
+    const dispatch = useDispatch();
+
     useEffect(() => {
         if (!id) {
             return
@@ -160,16 +165,20 @@ export const Index = () => {
     }
 
     function onSubmit(formData: any, event: any) {
-        const sendData = omit(formData, ['cast_members', 'genres', 'categories']);
+        const sendData:any = omit(
+            formData,
+            [...fileFields, 'cast_members', 'genres', 'categories']
+        );
         sendData['cast_members_id'] = formData['cast_members'].map((cast_member: CastMember) => cast_member.id);
         sendData['categories_id'] = formData['categories'].map((category: Category) => category.id);
         sendData['genres_id'] = formData['genres'].map((genre: Genre) => genre.id);
 
         const http = !video
             ? videoHttp.create(sendData)
-            : videoHttp.update(video.id, {...sendData, _method: 'PUT'}, {http: {usePost: true}});
+            : videoHttp.update(video.id, sendData);
         http.then(({data}) => {
             enqueueSnackbar('Video save successful', {variant: 'success'})
+            uploadFiles(data.data);
             event
                 ? (
                     id
@@ -180,6 +189,34 @@ export const Index = () => {
         }).catch((error) => {
             enqueueSnackbar(error.message, {variant: 'success'})
         })
+    }
+
+    function uploadFiles(video:any) {
+        // @ts-ignore
+        const files: FileInfo[] = fileFields
+            // @ts-ignore
+            .filter((fileField) => getValues()[fileField])
+            // @ts-ignore
+            .map(fileField => ({fileField, file: getValues()[fileField] as File} ));
+
+        if(!files.length){
+            return;
+        }
+
+        dispatch(Creators.addUpload({video, files}));
+
+        enqueueSnackbar('', {
+            key: 'snackbar-upload',
+            persist: true,
+            anchorOrigin: {
+                vertical: 'bottom',
+                horizontal: 'right'
+            },
+            content: (key, message) => {
+                const id = key as any;
+                return <SnackbarUpload id={id}/>
+            }
+        });
     }
 
     return (
@@ -283,14 +320,6 @@ export const Index = () => {
                                 disabled={loading}
                             />
                         </Grid>
-                        <Grid item xs={12}>
-                            <FormHelperText>
-                                Choose video genre
-                            </FormHelperText>
-                            <FormHelperText>
-                                Choose at least one category of each genre
-                            </FormHelperText>
-                        </Grid>
                     </Grid>
 
                 </Grid>
@@ -340,7 +369,6 @@ export const Index = () => {
                                 label={'Principal'}
                                 setValue={(value) => {
                                     setValue('video_file', value)
-                                    console.log(getValues());
                                 }}
                             />
                         </CardContent>
@@ -383,8 +411,6 @@ export const Index = () => {
                     setError('genres', {type: 'required',message:'Field Required'})
                 }
 
-                console.error(getValues())
-                console.error(errors)
                 if (!errors.title) {
                     onSubmit(getValues(), null)
                 }

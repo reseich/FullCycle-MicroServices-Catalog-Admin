@@ -23,7 +23,7 @@ export const SubmitActions: React.FC<SubmitActionsProps> = (props) => {
             className: classes.submit
         }
         return (
-            <Box dir={'rtl'}>
+            <Box dir={'ltf'}>
                 <Button
                     {...buttonProps}
                     onClick={props.handleSave}

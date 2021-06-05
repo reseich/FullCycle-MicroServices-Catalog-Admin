@@ -43,23 +43,30 @@ class HttpResource {
         return this.http.post<T>(this.resource, sendData);
     }
 
-    update<T = any>(id:any, data:any, options?: { http?: { usePost: boolean } }): Promise<AxiosResponse<T>> {
+    update<T = any>(id: any, data: any, options?: { http?: { usePost: boolean }, config?: AxiosRequestConfig }): Promise<AxiosResponse<T>> {
         let sendData = data;
         if (this.containsFile(data)) {
             sendData = this.getFormData(data);
         }
-        const {http} = (options || {}) as any;
+        const {http, config} = (options || {}) as any;
         return !options || !http || !http.usePost
-            ? this.http.put<T>(`${this.resource}/${id}`, sendData)
-            : this.http.post<T>(`${this.resource}/${id}`, sendData)
+            ? this.http.put<T>(`${this.resource}/${id}`, sendData, config)
+            : this.http.post<T>(`${this.resource}/${id}`, sendData, config)
     }
 
-    delete<T = any>(id: any): Promise<AxiosResponse<T>> {
-        return this.http.delete<T>(`${this.resource}/${id}`)
+    partialUpdate<T = any>(id: any, data: any, options?: { http?: { usePost: boolean }, config?: AxiosRequestConfig }): Promise<AxiosResponse<T>> {
+        let sendData = data;
+        if (this.containsFile(data)) {
+            sendData = this.getFormData(data);
+        }
+        const {http, config} = (options || {}) as any;
+        return !options || !http || !http.usePost
+            ? this.http.patch<T>(`${this.resource}/${id}`, sendData, config)
+            : this.http.post<T>(`${this.resource}/${id}`, sendData, config)
     }
 
-    deleteCollection<T = any>(queryParams:any): Promise<AxiosResponse<T>> {
-        const config:AxiosRequestConfig = {};
+    deleteCollection<T = any>(queryParams: any): Promise<AxiosResponse<T>> {
+        const config: AxiosRequestConfig = {};
         if (queryParams) {
             config['params'] = queryParams;
         }

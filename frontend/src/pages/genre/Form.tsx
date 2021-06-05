@@ -10,7 +10,7 @@ import {useSnackbar} from "notistack";
 import {yupResolver} from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import {Category, ListResponse} from "../../util/models";
-import {SubmitActions} from "../../Components/SubmitActions";
+import {SubmitActions} from "../../components/SubmitActions";
 
 export const Form = () => {
     const {id} = useParams() as any

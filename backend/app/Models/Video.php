@@ -4,12 +4,14 @@ namespace App\Models;
 
 use App\Models\Traits\UploadFiles;
 use App\Models\Traits\Uuid;
+use App\ModelFilters\VideoFilter;
+use EloquentFilter\Filterable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Video extends Model
 {
-    use SoftDeletes, Uuid, UploadFiles;
+    use SoftDeletes, Uuid, UploadFiles, Filterable;
 
     const RATING_LIST = ['L', '10', '12', '14', '16', '18'];
     const THUMB_FILE_MAX_SIZE = 1024 * 5; //5MB
@@ -40,6 +42,7 @@ class Video extends Model
     ];
 
     public $incrementing = false;
+    protected $keyType = 'string';
     protected $hidden = ['thumb_file', 'banner_file', 'trailer_file', 'video_file'];
     public static $fileFields = ['thumb_file', 'banner_file', 'trailer_file', 'video_file'];
 
@@ -137,5 +140,10 @@ class Video extends Model
     public function castMembers()
     {
         return $this->belongsToMany(CastMember::class)->withTrashed();
+    }
+
+    public function modelFilter()
+    {
+        return $this->provideFilter(VideoFilter::class);
     }
 }

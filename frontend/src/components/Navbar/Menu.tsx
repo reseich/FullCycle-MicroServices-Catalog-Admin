@@ -11,7 +11,8 @@ const listRoutes:any = {
     'categories.list': 'Categories',
     'genres.list': 'Genres',
     'members.list': 'Cast Members',
-    'videos.list': 'Videos'
+    'videos.list': 'Videos',
+    'uploads': 'Uploads',
 }
 const menuRoutes = routes.filter((route) => Object.keys(listRoutes).includes(route.name))
 

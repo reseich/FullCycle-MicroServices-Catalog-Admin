@@ -1,13 +1,13 @@
 import {Box, CssBaseline, MuiThemeProvider} from '@material-ui/core';
 import React from 'react';
-import {Navbar} from "./Components/Navbar";
+import {Navbar} from "./components/Navbar";
 import {BrowserRouter} from "react-router-dom";
 import AppRouter from "./routes/AppRouter";
-import Breadcrumb from "./Components/Breadcrumb";
+import Breadcrumb from "./components/Breadcrumb";
 import theme from './theme';
-import {SnackbarProvider} from "./Components/SnackbarProvider";
-import {LoadingProvider} from "./Components/loading/LoadingProvider";
-import Spinner from "./Components/Spinner";
+import {SnackbarProvider} from "./components/SnackbarProvider";
+import {LoadingProvider} from "./components/loading/LoadingProvider";
+import Spinner from "./components/Spinner";
 
 const App: React.FC = () => {
     return (

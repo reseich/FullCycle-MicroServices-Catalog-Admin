@@ -1,9 +1,9 @@
 // @flow
 import * as React from 'react';
-import AsyncAutocomplete, {AsyncAutocompleteComponent} from "../../../Components/AsyncAutoComplete";
-import GridSelected from "../../../Components/GridSelected";
-import GridSelectedItem from "../../../Components/GridSelectedItem";
-import {FormControl, FormControlProps, FormHelperText, makeStyles, Theme, Typography} from "@material-ui/core";
+import AsyncAutocomplete, {AsyncAutocompleteComponent} from "../../../components/AsyncAutoComplete";
+import GridSelected from "../../../components/GridSelected";
+import GridSelectedItem from "../../../components/GridSelectedItem";
+import {FormControl, FormControlProps, FormHelperText, makeStyles, Theme, Typography, useTheme} from "@material-ui/core";
 import useHttpHandled from "../../../hooks/useHttpHandled";
 import useCollectionManager from "../../../hooks/useCollectionManager";
 import categoryHttp from "../../../util/http/categoryHttp";
@@ -40,6 +40,7 @@ const CategoryField = React.forwardRef<CategoryFieldComponent, CategoryFieldProp
     const autocompleteHttp = useHttpHandled();
     const {addItem, removeItem} = useCollectionManager(categories, setCategories);
     const autocompleteRef = useRef() as MutableRefObject<AsyncAutocompleteComponent>;
+    const theme = useTheme();
 
     function fetchOptions(searchText: string) {
         // @ts-ignore
@@ -80,6 +81,9 @@ const CategoryField = React.forwardRef<CategoryFieldComponent, CategoryFieldProp
                     error: error !== undefined
                 }}
             />
+            <FormHelperText style={{height: theme.spacing(3)}}>
+                Choose at lease one category of each genre
+            </FormHelperText>
             <FormControl
                 margin={"normal"}
                 fullWidth

@@ -2,7 +2,7 @@
 import * as React from 'react';
 import {Box, FormControl, FormControlLabel, FormHelperText, FormLabel, Radio, RadioGroup} from "@material-ui/core";
 import {FormControlLabelProps} from "@material-ui/core/FormControlLabel";
-import Rating from "../../../Components/Rating";
+import Rating from "../../../components/Rating";
 import {FormControlProps} from "@material-ui/core/FormControl";
 
 interface RatingFieldProps {

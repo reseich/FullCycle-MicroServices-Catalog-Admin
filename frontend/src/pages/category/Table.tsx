@@ -3,17 +3,17 @@ import {useContext, useEffect, useState} from 'react';
 import format from 'date-fns/format'
 import parseIso from 'date-fns/parseISO'
 import categoryHttp from "../../util/http/categoryHttp";
-import {BadgeNo, BadgeYes} from "../../Components/Badge";
+import {BadgeNo, BadgeYes} from "../../components/Badge";
 import {Category, ListResponse} from "../../util/models";
-import DefaultTable, {makeActionStyles, TableColumn} from '../../Components/Table'
+import DefaultTable, {makeActionStyles, TableColumn} from '../../components/Table'
 import {useSnackbar} from "notistack";
 import {MuiThemeProvider} from "@material-ui/core/styles";
 import {IconButton} from "@material-ui/core";
 import EditIcon from "@material-ui/icons/Edit";
 import {Link} from "react-router-dom";
-import {FilterResetButton} from "../../Components/Table/FilterResetButton";
+import {FilterResetButton} from "../../components/Table/FilterResetButton";
 import useFilter from "../../hooks/useFIlter";
-import LoadingContext from "../../Components/loading/LoadingContext";
+import LoadingContext from "../../components/loading/LoadingContext";
 
 const debounceTimeValue = 300
 const rowsPerPage = 15

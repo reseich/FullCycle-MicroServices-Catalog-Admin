@@ -1,8 +1,8 @@
 // @flow
 import * as React from 'react';
-import AsyncAutocomplete, {AsyncAutocompleteComponent} from "../../../Components/AsyncAutoComplete";
-import GridSelected from "../../../Components/GridSelected";
-import GridSelectedItem from "../../../Components/GridSelectedItem";
+import AsyncAutocomplete, {AsyncAutocompleteComponent} from "../../../components/AsyncAutoComplete";
+import GridSelected from "../../../components/GridSelected";
+import GridSelectedItem from "../../../components/GridSelectedItem";
 import {FormControl, FormControlProps, FormHelperText, Grid, Typography} from "@material-ui/core";
 import useHttpHandled from "../../../hooks/useHttpHandled";
 import useCollectionManager from "../../../hooks/useCollectionManager";

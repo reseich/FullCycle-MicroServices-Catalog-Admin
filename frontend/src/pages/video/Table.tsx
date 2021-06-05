@@ -1,18 +1,19 @@
 import * as React from 'react';
-import {useEffect, useRef, useState} from "react";
+import {useContext, useEffect, useRef, useState} from "react";
 import format from "date-fns/format";
 import parseISO from "date-fns/parseISO";
 import videoHttp from "../../util/http/videosHttp";
 import {Video, ListResponse} from "../../util/models";
-import DefaultTable, {makeActionStyles, TableColumn} from '../../Components/Table';
+import DefaultTable, {makeActionStyles, TableColumn} from '../../components/Table';
 import {useSnackbar} from "notistack";
 import {IconButton, MuiThemeProvider, Theme} from "@material-ui/core";
 import {Link} from "react-router-dom";
 import EditIcon from '@material-ui/icons/Edit';
-import {FilterResetButton} from "../../Components/Table/FilterResetButton";
+import {FilterResetButton} from "../../components/Table/FilterResetButton";
 import useFilter from "../../hooks/useFIlter";
 import useDeleteCollection from "../../hooks/useDeleteCollection";
-import DeleteDialog from "../../Components/DeleteDialog";
+import DeleteDialog from "../../components/DeleteDialog";
+import LoadingContext from "../../components/loading/LoadingContext";
 
 const columnsDefinition: TableColumn[] = [
     {
@@ -97,7 +98,7 @@ const Table = () => {
     const snackbar = useSnackbar();
     const subscribed = useRef(true);
     const [data, setData] = useState<Video[]>([]);
-    const [loading, setLoading] = useState<boolean>(false);
+    const loading = useContext(LoadingContext);
     const {openDeleteDialog, setOpenDeleteDialog, rowsToDelete, setRowsToDelete} = useDeleteCollection();
 //property, funcao - changePage changeRowsPerPage
     const {
@@ -164,7 +165,6 @@ const Table = () => {
     }
 
     async function getData() {
-        setLoading(true);
         try {
             const {data} = await videoHttp.list<ListResponse<Video>>({
                 queryParams: {
@@ -188,11 +188,9 @@ const Table = () => {
                 return;
             }
             snackbar.enqueueSnackbar(
-                'Não foi possível carregar as informações',
+                'Cannot loading informations',
                 {variant: 'error',}
             )
-        } finally {
-            setLoading(false);
         }
     }
 

@@ -2,10 +2,10 @@ import * as React from 'react';
 import {useEffect, useRef, useState} from 'react';
 import format from 'date-fns/format'
 import parseIso from 'date-fns/parseISO'
-import {BadgeNo, BadgeYes} from "../../Components/Badge";
+import {BadgeNo, BadgeYes} from "../../components/Badge";
 import {Category, Genre, ListResponse} from "../../util/models";
 import genreHttp from "../../util/http/genreHttp";
-import DefaultTable, {makeActionStyles, TableColumn} from '../../Components/Table'
+import DefaultTable, {makeActionStyles, TableColumn} from '../../components/Table'
 import {useSnackbar} from "notistack";
 import {MuiThemeProvider} from "@material-ui/core/styles";
 import {IconButton} from "@material-ui/core";
@@ -14,7 +14,7 @@ import EditIcon from "@material-ui/icons/Edit";
 import useFilter from "../../hooks/useFIlter";
 import * as yup from "yup";
 import categoryHttp from "../../util/http/categoryHttp";
-import {FilterResetButton} from "../../Components/Table/FilterResetButton";
+import {FilterResetButton} from "../../components/Table/FilterResetButton";
 
 const columnsDefinitions: TableColumn[] = [
     {

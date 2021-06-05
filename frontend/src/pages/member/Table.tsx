@@ -4,7 +4,7 @@ import format from 'date-fns/format'
 import parseIso from 'date-fns/parseISO'
 import {CastMember, CastMemberTypeMap, ListResponse} from "../../util/models";
 import memberHttp from "../../util/http/memberHttp";
-import DefaultTable, {makeActionStyles, TableColumn} from '../../Components/Table'
+import DefaultTable, {makeActionStyles, TableColumn} from '../../components/Table'
 import {useSnackbar} from "notistack";
 import {MuiThemeProvider} from "@material-ui/core/styles";
 import {IconButton} from "@material-ui/core";
@@ -13,7 +13,7 @@ import EditIcon from "@material-ui/icons/Edit";
 import useFilter from "../../hooks/useFIlter";
 import * as yup from "yup";
 import {invert} from 'lodash';
-import {FilterResetButton} from "../../Components/Table/FilterResetButton";
+import {FilterResetButton} from "../../components/Table/FilterResetButton";
 
 const castMemberNames = Object.values(CastMemberTypeMap);
 const columnsDefinitions: TableColumn[] = [
@@ -177,7 +177,6 @@ const Table = () => {
                 setTotalRecords(data.meta.total);
             }
         } catch (error) {
-            console.error(error);
             if (memberHttp.isCancelRequest(error)) {
                 return;
             }
