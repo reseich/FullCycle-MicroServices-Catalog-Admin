@@ -104,7 +104,6 @@ function updateProgress(state: Typings.UploadState = INITIAL_STATE, action: Typi
                     }
                 });
                 const progress = calculateGlobalProgress(files);
-                console.log({...upload, progress, files});
                 return {...upload, progress, files}
             }
         }

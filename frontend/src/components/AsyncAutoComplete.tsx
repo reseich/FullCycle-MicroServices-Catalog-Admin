@@ -4,10 +4,10 @@ import {TextFieldProps} from "@material-ui/core/TextField";
 import {CircularProgress, TextField} from "@material-ui/core";
 import {useState, useEffect, useImperativeHandle} from "react";
 import {useDebounce} from "use-debounce";
-import { RefAttributes } from 'react';
+import {RefAttributes} from 'react';
 
-interface AsyncAutocompleteProps extends RefAttributes<AsyncAutocompleteComponent>{
-    fetchOptions: (searchText:string) => Promise<any>;
+interface AsyncAutocompleteProps extends RefAttributes<AsyncAutocompleteComponent> {
+    fetchOptions: (searchText: string) => Promise<any>;
     debounceTime?: number;
     TextFieldProps?: TextFieldProps;
     AutocompleteProps?: Omit<AutocompleteProps<any, any, any, any>, 'renderInput'> & UseAutocompleteProps<any, any, any, any>;
@@ -19,7 +19,7 @@ export interface AsyncAutocompleteComponent {
 
 const AsyncAutocomplete = React.forwardRef<AsyncAutocompleteComponent, AsyncAutocompleteProps>((props, ref) => {
 
-    const {AutocompleteProps, debounceTime = 300} = props;
+    const {AutocompleteProps, debounceTime = 300, fetchOptions} = props;
     const {freeSolo = false, onOpen, onClose, onInputChange} = AutocompleteProps as any;
     const [open, setOpen] = useState(false);
     const [searchText, setSearchText] = useState("");
@@ -55,7 +55,7 @@ const AsyncAutocomplete = React.forwardRef<AsyncAutocompleteComponent, AsyncAuto
             setSearchText(value);
             onInputChange && onInputChange();
         },
-        renderInput: (params:any) => {
+        renderInput: (params: any) => {
             return <TextField
                 {...params}
                 {...textFieldProps}
@@ -83,17 +83,17 @@ const AsyncAutocomplete = React.forwardRef<AsyncAutocompleteComponent, AsyncAuto
         if (!open && !freeSolo) {
             setOptions([]);
         }
-    }, [open]);
+    }, [open, freeSolo]);
 
     useEffect(() => {
-        if (!open || debouncedSearchText === "" && freeSolo) {
+        if ((!open || debouncedSearchText === "") && freeSolo) {
             return;
         }
         let isSubscribed = true;
         (async () => {
             setLoading(true);
             try {
-                const data = await props.fetchOptions(debouncedSearchText);
+                const data = await fetchOptions(debouncedSearchText);
                 if (isSubscribed) {
                     setOptions(data);
                 }
@@ -104,7 +104,7 @@ const AsyncAutocomplete = React.forwardRef<AsyncAutocompleteComponent, AsyncAuto
         return () => {
             isSubscribed = false;
         }
-    }, [freeSolo ? debouncedSearchText : open]);
+    }, [freeSolo, debouncedSearchText, open, fetchOptions]);
 
     return (
         <Autocomplete {...autocompleteProps}/>

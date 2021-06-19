@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {useEffect, useRef, useState} from 'react';
+import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import format from 'date-fns/format'
 import parseIso from 'date-fns/parseISO'
 import {CastMember, CastMemberTypeMap, ListResponse} from "../../util/models";
@@ -10,7 +10,7 @@ import {MuiThemeProvider} from "@material-ui/core/styles";
 import {IconButton} from "@material-ui/core";
 import {Link} from "react-router-dom";
 import EditIcon from "@material-ui/icons/Edit";
-import useFilter from "../../hooks/useFIlter";
+import useFilter from "../../hooks/useFilter";
 import * as yup from "yup";
 import {invert} from 'lodash';
 import {FilterResetButton} from "../../components/Table/FilterResetButton";
@@ -89,11 +89,39 @@ const Table = () => {
     const [data, setData] = useState<CastMember[]>([])
     const [loading, setLoading] = useState<boolean>(false)
     const subscribed = useRef(true);
+    const extraFilter = useMemo(() => ({
+        createValidationSchema: () => {
+            return yup.object().shape({
+                type: yup.string()
+                    .nullable()
+                    .transform(value => {
+                        return !value || !castMemberNames.includes(value) ? undefined : value;
+                    })
+                    .default(null)
+            })
+        },
+        formatSearchParams: (debouncedState: any) => {
+            return debouncedState.extraFilter
+                ? {
+                    ...(
+                        debouncedState.extraFilter.type &&
+                        {type: debouncedState.extraFilter.type}
+                    ),
+                }
+                : undefined
+        },
+        getStateFromURL: (queryParams: any) => {
+            return {
+                type: queryParams.get('type')
+            }
+        }
+    }), [])
 
     const {
         filterManager,
         filterState,
         debouncedFilterState,
+        cleanSearchText,
         totalRecords,
         setTotalRecords,
     } = useFilter({
@@ -101,33 +129,7 @@ const Table = () => {
         debounceTime: debounceTime,
         rowsPerPage,
         rowsPerPageOptions,
-        extraFilter: {
-            createValidationSchema: () => {
-                return yup.object().shape({
-                    type: yup.string()
-                        .nullable()
-                        .transform(value => {
-                            return !value || !castMemberNames.includes(value) ? undefined : value;
-                        })
-                        .default(null)
-                })
-            },
-            formatSearchParams: (debouncedState) => {
-                return debouncedState.extraFilter
-                    ? {
-                        ...(
-                            debouncedState.extraFilter.type &&
-                            {type: debouncedState.extraFilter.type}
-                        ),
-                    }
-                    : undefined
-            },
-            getStateFromURL: (queryParams) => {
-                return {
-                    type: queryParams.get('type')
-                }
-            }
-        }
+        extraFilter: extraFilter
     });
     //?type=Diretor
     const indexColumnType = columnsDefinitions.findIndex(c => c.name === 'type');
@@ -140,27 +142,12 @@ const Table = () => {
         serverSideFilterList[indexColumnType] = [typeFilterValue];
     }
 
-    useEffect(() => {
-        subscribed.current = true;
-        filterManager.pushHistory();
-        getData();
-        return () => {
-            subscribed.current = false;
-        }
-    }, [
-        filterManager.cleanSearchText(debouncedFilterState.search),
-        debouncedFilterState.pagination.page,
-        debouncedFilterState.pagination.per_page,
-        debouncedFilterState.order,
-        JSON.stringify(debouncedFilterState.extraFilter)
-    ]);
-
-    async function getData() {
+    const getData = useCallback(async () => {
         setLoading(true);
         try {
             const {data} = await memberHttp.list<ListResponse<CastMember>>({
                 queryParams: {
-                    search: filterManager.cleanSearchText(debouncedFilterState.search),
+                    search: cleanSearchText(debouncedFilterState.search),
                     page: debouncedFilterState.pagination.page,
                     per_page: debouncedFilterState.pagination.per_page,
                     sort: debouncedFilterState.order.name,
@@ -187,7 +174,27 @@ const Table = () => {
         } finally {
             setLoading(false);
         }
-    }
+    }, [cleanSearchText,
+        debouncedFilterState.extraFilter,
+        debouncedFilterState.order.direction,
+        debouncedFilterState.order.name,
+        debouncedFilterState.pagination.page,
+        debouncedFilterState.pagination.per_page,
+        debouncedFilterState.search,
+        enqueueSnackbar,
+        setTotalRecords])
+
+
+    useEffect(() => {
+        subscribed.current = true;
+        getData();
+        return () => {
+            subscribed.current = false;
+        }
+    }, [debouncedFilterState.pagination.page,
+        debouncedFilterState.pagination.per_page,
+        debouncedFilterState.order,
+        getData]);
 
     return (
         <MuiThemeProvider theme={makeActionStyles(columnsDefinitions.length - 1)}>

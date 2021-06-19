@@ -12,7 +12,7 @@ import {IconButton} from "@material-ui/core";
 import EditIcon from "@material-ui/icons/Edit";
 import {Link} from "react-router-dom";
 import {FilterResetButton} from "../../components/Table/FilterResetButton";
-import useFilter from "../../hooks/useFIlter";
+import useFilter from "../../hooks/useFilter";
 import LoadingContext from "../../components/loading/LoadingContext";
 
 const debounceTimeValue = 300
@@ -88,6 +88,7 @@ const Table = () => {
     const loading = useContext(LoadingContext);
     const {
         filterManager,
+        cleanSearchText,
         filterState,
         totalRecords,
         setTotalRecords,
@@ -99,12 +100,11 @@ const Table = () => {
         rowsPerPageOptions
     })
 
-
     useEffect(() => {
         categoryHttp.list<ListResponse<Category>>(
             {
                 queryParams: {
-                    search: filterManager.cleanSearchText(debouncedFilterState.search),
+                    search: cleanSearchText(debouncedFilterState.search),
                     page: debouncedFilterState.pagination.page,
                     per_page: debouncedFilterState.pagination.per_page,
                     sort: debouncedFilterState.order.name,
@@ -112,7 +112,6 @@ const Table = () => {
                 }
             }
         ).then(({data}) => {
-            filterManager.pushHistory()
             setTotalRecords(data.meta.total)
             setData(data.data)
         }).catch((error) => {
@@ -127,7 +126,8 @@ const Table = () => {
         debouncedFilterState.pagination.per_page,
         debouncedFilterState.order,
         setTotalRecords,
-        enqueueSnackbar])
+        enqueueSnackbar,
+        cleanSearchText])
 
     return (
         <MuiThemeProvider theme={makeActionStyles(columnsDefinitions.length - 1)}>

@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react';
-import {useContext, useEffect, useState} from 'react';
+import {useContext, useEffect} from 'react';
 import {Checkbox, FormControlLabel, TextField} from "@material-ui/core";
 import {Controller, useForm} from "react-hook-form";
 import categoryHttp from "../../util/http/categoryHttp";

@@ -32,7 +32,8 @@ export const LoadingProvider = (props:any) => {
                 return response;
             },
             (error:any) => {
-                if (isSubscribed && !error.headers.hasOwnProperty('x-ignore-loading')) {
+                console.log(error)
+                if (isSubscribed && !error?.headers?.hasOwnProperty('x-ignore-loading')) {
                     decrementCountRequest();
                 }
                 return Promise.reject(error);
@@ -43,7 +44,7 @@ export const LoadingProvider = (props:any) => {
             removeGlobalRequestInterceptor(requestIds);
             removeGlobalResponseInterceptor(responseIds);
         }
-    }, [true]);
+    }, []);
 
     useEffect(() => {
         if (!countRequest) {

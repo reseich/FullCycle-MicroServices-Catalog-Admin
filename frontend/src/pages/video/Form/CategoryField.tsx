@@ -3,13 +3,21 @@ import * as React from 'react';
 import AsyncAutocomplete, {AsyncAutocompleteComponent} from "../../../components/AsyncAutoComplete";
 import GridSelected from "../../../components/GridSelected";
 import GridSelectedItem from "../../../components/GridSelectedItem";
-import {FormControl, FormControlProps, FormHelperText, makeStyles, Theme, Typography, useTheme} from "@material-ui/core";
+import {
+    FormControl,
+    FormControlProps,
+    FormHelperText,
+    makeStyles,
+    Theme,
+    Typography,
+    useTheme
+} from "@material-ui/core";
 import useHttpHandled from "../../../hooks/useHttpHandled";
 import useCollectionManager from "../../../hooks/useCollectionManager";
 import categoryHttp from "../../../util/http/categoryHttp";
 import {getGenresFromCategory} from "../../../util/model-filters";
 import {grey} from "@material-ui/core/colors";
-import {RefAttributes} from "react";
+import {RefAttributes, useCallback} from "react";
 import {useImperativeHandle} from "react";
 import {useRef} from "react";
 import {MutableRefObject} from "react";
@@ -42,7 +50,7 @@ const CategoryField = React.forwardRef<CategoryFieldComponent, CategoryFieldProp
     const autocompleteRef = useRef() as MutableRefObject<AsyncAutocompleteComponent>;
     const theme = useTheme();
 
-    function fetchOptions(searchText: string) {
+    const fetchOptions = useCallback((searchText: string) => {
         // @ts-ignore
         return autocompleteHttp(
             categoryHttp
@@ -54,7 +62,7 @@ const CategoryField = React.forwardRef<CategoryFieldComponent, CategoryFieldProp
                     }
                 })
         ).then(data => data.data)
-    }
+    }, [autocompleteHttp, genres])
 
     useImperativeHandle(ref, () => ({
         clear: () => autocompleteRef.current.clear()

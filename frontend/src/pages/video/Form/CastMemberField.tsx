@@ -1,14 +1,13 @@
 // @flow
 import * as React from 'react';
+import {MutableRefObject, RefAttributes, useCallback, useImperativeHandle, useRef} from 'react';
 import AsyncAutocomplete, {AsyncAutocompleteComponent} from "../../../components/AsyncAutoComplete";
 import GridSelected from "../../../components/GridSelected";
 import GridSelectedItem from "../../../components/GridSelectedItem";
-import {FormControl, FormControlProps, FormHelperText, Grid, Typography} from "@material-ui/core";
+import {FormControl, FormControlProps, FormHelperText, Typography} from "@material-ui/core";
 import useHttpHandled from "../../../hooks/useHttpHandled";
 import useCollectionManager from "../../../hooks/useCollectionManager";
 import castMemberHttp from "../../../util/http/memberHttp";
-import {MutableRefObject, RefAttributes, useRef} from "react";
-import {useImperativeHandle} from "react";
 
 interface CastMemberFieldProps extends RefAttributes<CastMemberFieldProps> {
     castMembers: any[],
@@ -33,7 +32,7 @@ const CastMemberField = React.forwardRef<CastMemberFieldComponent, CastMemberFie
     const {addItem, removeItem} = useCollectionManager(castMembers, setCastMembers);
     const autocompleteRef = useRef() as MutableRefObject<AsyncAutocompleteComponent>;
 
-    function fetchOptions(searchText: string) {
+    const fetchOptions = useCallback((searchText: string) => {
         return autocompleteHttp(
             castMemberHttp
                 .list({
@@ -42,7 +41,7 @@ const CastMemberField = React.forwardRef<CastMemberFieldComponent, CastMemberFie
                     }
                 })
         ).then(data => data.data)
-    }
+    }, [autocompleteHttp])
 
     useImperativeHandle(ref, () => ({
         clear: () => autocompleteRef.current.clear()

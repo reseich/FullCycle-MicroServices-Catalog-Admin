@@ -1,11 +1,10 @@
 import * as React from 'react';
-import {createRef, MutableRefObject, useContext, useEffect, useRef, useState} from 'react';
+import {createRef, MutableRefObject, useCallback, useContext, useEffect, useRef, useState} from 'react';
 import {
     Card,
     CardContent,
     Checkbox,
     FormControlLabel,
-    FormHelperText,
     Grid,
     makeStyles,
     TextField,
@@ -14,7 +13,7 @@ import {
     useMediaQuery,
     useTheme
 } from "@material-ui/core";
-import {Controller, useForm, useFormState} from "react-hook-form";
+import {Controller, useForm} from "react-hook-form";
 import * as yup from 'yup';
 import {useHistory, useParams} from "react-router";
 import {useSnackbar} from "notistack";
@@ -33,8 +32,8 @@ import {InputFileComponent} from "../../../components/InputFile";
 import useSnackbarFormError from "../../../hooks/useSnackbarFormError";
 import LoadingContext from "../../../components/loading/LoadingContext";
 import SnackbarUpload from "../../../components/SnackbarUpload";
-import {useDispatch, useSelector} from "react-redux";
-import {UploadState as UploadState, Upload, UploadModule, FileInfo} from "../../../store/upload/types";
+import {useDispatch} from "react-redux";
+import {FileInfo} from "../../../store/upload/types";
 import {Creators} from '../../../store/upload';
 
 const useStyles = makeStyles((theme: Theme) => ({
@@ -140,6 +139,16 @@ export const Index = () => {
     ) as MutableRefObject<{ [key: string]: MutableRefObject<InputFileComponent> }>;
     const dispatch = useDispatch();
 
+    const resetForm = useCallback((data: any) => {
+        Object.keys(uploadsRef.current).forEach(
+            field => uploadsRef.current[field].current.clear()
+        );
+        castMemberRef.current.clear();
+        genreRef.current.clear();
+        categoryRef.current.clear();
+        reset(data);
+    }, [reset])
+
     useEffect(() => {
         if (!id) {
             return
@@ -152,20 +161,11 @@ export const Index = () => {
             history.push('/videos')
             enqueueSnackbar('Video not found', {variant: 'error'})
         })
-    }, [id, reset, enqueueSnackbar, history])
+    }, [resetForm, id, reset, enqueueSnackbar, history])
 
-    function resetForm(data: any) {
-        Object.keys(uploadsRef.current).forEach(
-            field => uploadsRef.current[field].current.clear()
-        );
-        castMemberRef.current.clear();
-        genreRef.current.clear();
-        categoryRef.current.clear();
-        reset(data);//removido
-    }
 
     function onSubmit(formData: any, event: any) {
-        const sendData:any = omit(
+        const sendData: any = omit(
             formData,
             [...fileFields, 'cast_members', 'genres', 'categories']
         );
@@ -191,15 +191,15 @@ export const Index = () => {
         })
     }
 
-    function uploadFiles(video:any) {
+    function uploadFiles(video: any) {
         // @ts-ignore
         const files: FileInfo[] = fileFields
             // @ts-ignore
             .filter((fileField) => getValues()[fileField])
             // @ts-ignore
-            .map(fileField => ({fileField, file: getValues()[fileField] as File} ));
+            .map(fileField => ({fileField, file: getValues()[fileField] as File}));
 
-        if(!files.length){
+        if (!files.length) {
             return;
         }
 
@@ -402,13 +402,13 @@ export const Index = () => {
             <SubmitActions disabledButtons={loading} handleSave={async () => {
                 await trigger();
                 if (!getValues().cast_members.length) {
-                    setError('cast_members', {type: 'required',message:'Field Required'})
+                    setError('cast_members', {type: 'required', message: 'Field Required'})
                 }
                 if (!getValues()?.categories.length) {
-                    setError('categories', {type: 'required',message:'Field Required'})
+                    setError('categories', {type: 'required', message: 'Field Required'})
                 }
                 if (!getValues()?.genres.length) {
-                    setError('genres', {type: 'required',message:'Field Required'})
+                    setError('genres', {type: 'required', message: 'Field Required'})
                 }
 
                 if (!errors.title) {

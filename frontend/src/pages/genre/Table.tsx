@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {useEffect, useRef, useState} from 'react';
+import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import format from 'date-fns/format'
 import parseIso from 'date-fns/parseISO'
 import {BadgeNo, BadgeYes} from "../../components/Badge";
@@ -11,7 +11,7 @@ import {MuiThemeProvider} from "@material-ui/core/styles";
 import {IconButton} from "@material-ui/core";
 import {Link} from "react-router-dom";
 import EditIcon from "@material-ui/icons/Edit";
-import useFilter from "../../hooks/useFIlter";
+import useFilter from "../../hooks/useFilter";
 import * as yup from "yup";
 import categoryHttp from "../../util/http/categoryHttp";
 import {FilterResetButton} from "../../components/Table/FilterResetButton";
@@ -103,46 +103,46 @@ const rowsPerPageOptions = [15, 25, 50];
 const Table = () => {
     const {enqueueSnackbar} = useSnackbar();
     const [data, setData] = useState<Genre[]>([])
-    const [categories, setCategories] = useState<Category[]>();
     const [loading, setLoading] = useState<boolean>(false)
     const subscribed = useRef(true);
-
+    const extraFilter = useMemo(() => ({
+        createValidationSchema: () => {
+            return yup.object().shape({
+                categories: yup.mixed()
+                    .nullable()
+                    .transform(value => {
+                        return !value || value === '' ? undefined : value.split(',');
+                    })
+                    .default(null),
+            })
+        },
+        formatSearchParams: (debouncedState: any) => {
+            return debouncedState.extraFilter ? {
+                ...(
+                    debouncedState.extraFilter.categories &&
+                    {categories: debouncedState.extraFilter.categories.join(',')}
+                )
+            } : undefined
+        },
+        getStateFromURL: (queryParams: any) => {
+            return {
+                categories: queryParams.get('categories')
+            }
+        }
+    }), [])
     const {
         filterManager,
         filterState,
         debouncedFilterState,
         totalRecords,
+        cleanSearchText,
         setTotalRecords,
     } = useFilter({
         columns: columnsDefinitions,
         debounceTime: debounceTime,
         rowsPerPage,
         rowsPerPageOptions,
-        extraFilter: {
-            createValidationSchema: () => {
-                return yup.object().shape({
-                    categories: yup.mixed()
-                        .nullable()
-                        .transform(value => {
-                            return !value || value === '' ? undefined : value.split(',');
-                        })
-                        .default(null),
-                })
-            },
-            formatSearchParams: (debouncedState) => {
-                return debouncedState.extraFilter ? {
-                    ...(
-                        debouncedState.extraFilter.categories &&
-                        {categories: debouncedState.extraFilter.categories.join(',')}
-                    )
-                } : undefined
-            },
-            getStateFromURL: (queryParams) => {
-                return {
-                    categories: queryParams.get('categories')
-                }
-            }
-        }
+        extraFilter: extraFilter
     });
 
     const indexColumnCategories = columnsDefinitions.findIndex(c => c.name === 'categories');
@@ -160,7 +160,6 @@ const Table = () => {
             try {
                 const {data} = await categoryHttp.list({queryParams: {all: ''}});
                 if (isSubscribed) {
-                    setCategories(data.data);
                     (columnCategories.options as any).filterOptions.names = data.data.map((category: Category) => category.name)
                 }
             } catch (error) {
@@ -175,29 +174,14 @@ const Table = () => {
         return () => {
             isSubscribed = false;
         }
-    }, []);
+    }, [columnCategories.options, enqueueSnackbar]);
 
-    useEffect(() => {
-        subscribed.current = true;
-        filterManager.pushHistory();
-        getData();
-        return () => {
-            subscribed.current = false;
-        }
-    }, [
-        filterManager.cleanSearchText(debouncedFilterState.search),
-        debouncedFilterState.pagination.page,
-        debouncedFilterState.pagination.per_page,
-        debouncedFilterState.order,
-        JSON.stringify(debouncedFilterState.extraFilter)
-    ]);
-
-    async function getData() {
+    const getData = useCallback(async () => {
         setLoading(true);
         try {
             const {data} = await genreHttp.list<ListResponse<Genre>>({
                 queryParams: {
-                    search: filterManager.cleanSearchText(debouncedFilterState.search),
+                    search: cleanSearchText(debouncedFilterState.search),
                     page: debouncedFilterState.pagination.page,
                     per_page: debouncedFilterState.pagination.per_page,
                     sort: debouncedFilterState.order.name,
@@ -225,7 +209,26 @@ const Table = () => {
         } finally {
             setLoading(false);
         }
-    }
+    }, [cleanSearchText,
+        debouncedFilterState.extraFilter,
+        debouncedFilterState.order.direction,
+        debouncedFilterState.order.name,
+        debouncedFilterState.pagination.page,
+        debouncedFilterState.pagination.per_page,
+        debouncedFilterState.search,
+        enqueueSnackbar,
+        setTotalRecords])
+
+    useEffect(() => {
+        subscribed.current = true;
+        getData();
+        return () => {
+            subscribed.current = false;
+        }
+    }, [debouncedFilterState.pagination.page,
+        debouncedFilterState.pagination.per_page,
+        debouncedFilterState.order,
+        getData]);
 
 
     return (

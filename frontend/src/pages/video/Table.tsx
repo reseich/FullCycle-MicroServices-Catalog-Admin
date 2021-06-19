@@ -1,16 +1,16 @@
 import * as React from 'react';
-import {useContext, useEffect, useRef, useState} from "react";
+import {useCallback, useContext, useEffect, useRef, useState} from 'react';
 import format from "date-fns/format";
 import parseISO from "date-fns/parseISO";
 import videoHttp from "../../util/http/videosHttp";
-import {Video, ListResponse} from "../../util/models";
+import {ListResponse, Video} from "../../util/models";
 import DefaultTable, {makeActionStyles, TableColumn} from '../../components/Table';
 import {useSnackbar} from "notistack";
-import {IconButton, MuiThemeProvider, Theme} from "@material-ui/core";
+import {IconButton, MuiThemeProvider} from "@material-ui/core";
 import {Link} from "react-router-dom";
 import EditIcon from '@material-ui/icons/Edit';
 import {FilterResetButton} from "../../components/Table/FilterResetButton";
-import useFilter from "../../hooks/useFIlter";
+import useFilter from "../../hooks/useFilter";
 import useDeleteCollection from "../../hooks/useDeleteCollection";
 import DeleteDialog from "../../components/DeleteDialog";
 import LoadingContext from "../../components/loading/LoadingContext";
@@ -105,8 +105,8 @@ const Table = () => {
         filterManager,
         filterState,
         debouncedFilterState,
-        dispatch,
         totalRecords,
+        cleanSearchText,
         setTotalRecords,
     } = useFilter({
         columns: columnsDefinition,
@@ -115,19 +115,55 @@ const Table = () => {
         rowsPerPageOptions,
     });
 
+    const getData = useCallback(async () => {
+        try {
+            const {data} = await videoHttp.list<ListResponse<Video>>({
+                queryParams: {
+                    search: cleanSearchText(debouncedFilterState.search),
+                    page: debouncedFilterState.pagination.page,
+                    per_page: debouncedFilterState.pagination.per_page,
+                    sort: debouncedFilterState.order.name,
+                    dir: debouncedFilterState.order.direction,
+                }
+            });
+            if (subscribed.current) {
+                setData(data.data);
+                setTotalRecords(data.meta.total);
+                if (openDeleteDialog) {
+                    setOpenDeleteDialog(false);
+                }
+            }
+        } catch (error) {
+            console.error(error);
+            if (videoHttp.isCancelRequest(error)) {
+                return;
+            }
+            snackbar.enqueueSnackbar(
+                'Cannot loading informations',
+                {variant: 'error',}
+            )
+        }
+    }, [cleanSearchText,
+        debouncedFilterState.order.direction,
+        debouncedFilterState.order.name,
+        debouncedFilterState.pagination.page,
+        debouncedFilterState.pagination.per_page,
+        debouncedFilterState.search,
+        openDeleteDialog,
+        setOpenDeleteDialog,
+        setTotalRecords,
+        snackbar])
+
     useEffect(() => {
         subscribed.current = true;
-        filterManager.pushHistory();
         getData();
         return () => {
             subscribed.current = false;
         }
-    }, [
-        filterManager.cleanSearchText(debouncedFilterState.search),
-        debouncedFilterState.pagination.page,
+    }, [debouncedFilterState.pagination.page,
         debouncedFilterState.pagination.per_page,
-        debouncedFilterState.order
-    ]);
+        debouncedFilterState.order,
+        getData]);
 
     function deleteRows(confirmed: boolean) {
         if (!confirmed) {
@@ -163,37 +199,6 @@ const Table = () => {
                 )
             })
     }
-
-    async function getData() {
-        try {
-            const {data} = await videoHttp.list<ListResponse<Video>>({
-                queryParams: {
-                    search: filterManager.cleanSearchText(debouncedFilterState.search),
-                    page: debouncedFilterState.pagination.page,
-                    per_page: debouncedFilterState.pagination.per_page,
-                    sort: debouncedFilterState.order.name,
-                    dir: debouncedFilterState.order.direction,
-                }
-            });
-            if (subscribed.current) {
-                setData(data.data);
-                setTotalRecords(data.meta.total);
-                if (openDeleteDialog) {
-                    setOpenDeleteDialog(false);
-                }
-            }
-        } catch (error) {
-            console.error(error);
-            if (videoHttp.isCancelRequest(error)) {
-                return;
-            }
-            snackbar.enqueueSnackbar(
-                'Cannot loading informations',
-                {variant: 'error',}
-            )
-        }
-    }
-
 
     return (
         <MuiThemeProvider theme={makeActionStyles(columnsDefinition.length - 1)}>
